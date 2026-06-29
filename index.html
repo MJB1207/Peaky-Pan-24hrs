@@ -3,321 +3,351 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ecos de Moda — Tienda de Regalos</title>
+  <title>Peaky Pan — Mercado Minorista 24 Horas</title>
+  
+  <!-- Protección contra copia -->
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = function(e) {
+      if(e.keyCode == 123) return false;
+      if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+      if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+      if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+    }
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            blush: '#FFFAFC', charcoal: '#1A1A1A', bark: '#1A1A1A',
-            fuchsia: '#E91E8C', deepFuchsia: '#C2185B', sand: '#F3E5F5',
-            drift: '#6B7280', admin: '#111827', adminCard: '#1F2937'
+            dark: { DEFAULT: '#121212', card: '#1E1E1E', light: '#2D2D2D' },
+            yolk: { DEFAULT: '#FFD700', hover: '#FFC107', soft: 'rgba(255, 215, 0, 0.1)' }
           },
-          fontFamily: { display: ['Playfair Display', 'serif'], body: ['Lato', 'sans-serif'] }
+          fontFamily: { display: ['Oswald', 'sans-serif'], body: ['Inter', 'sans-serif'] }
         }
       }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root { --bg: #FFFAFC; --fg: #1A1A1A; --accent: #E91E8C; --accent2: #C2185B; }
+    :root { --bg: #121212; --fg: #FFFFFF; --accent: #FFD700; --card: #1E1E1E; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Lato', sans-serif; background: var(--bg); color: var(--fg); overflow-x: hidden; max-width: 100vw; }
-    .font-display { font-family: 'Playfair Display', serif; }
-    .float-shape { position: absolute; border-radius: 50%; pointer-events: none; animation: floatUp 8s ease-in-out infinite; background: rgba(255,255,255,0.15); backdrop-filter: blur(6px); box-shadow: 0 8px 32px rgba(233, 30, 140, 0.25), inset 0 0 20px rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.4); overflow: hidden; }
-    .float-shape img { width: 100%; height: 100%; object-fit: contain; background: white; box-shadow: 0 4px 15px rgba(233, 30, 140, 0.2); }
-    .float-shape:nth-child(1) { animation-delay: 0s; animation-duration: 8s; }
-    .float-shape:nth-child(2) { animation-delay: -2s; animation-duration: 10s; }
-    .float-shape:nth-child(3) { animation-delay: -4s; animation-duration: 12s; }
-    .float-shape:nth-child(4) { animation-delay: -1s; animation-duration: 9s; }
-    @keyframes floatUp { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.05); } }
-    .product-card { transition: transform 0.2s; border-radius: 16px; overflow: hidden; background: #fff; }
-    .product-card:active { transform: scale(0.97); }
-    .tab-btn { transition: all 0.3s; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; padding: 10px 16px; font-size: 14px; }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--fg); overflow-x: hidden; }
+    .font-display { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+    
+    /* Animación de estrellas */
+    .star-float { position: absolute; color: var(--accent); pointer-events: none; animation: floatStar 6s ease-in-out infinite; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    .star-float:nth-child(1) { top: 10%; left: 10%; font-size: 24px; animation-delay: 0s; }
+    .star-float:nth-child(2) { top: 20%; right: 15%; font-size: 18px; animation-delay: -2s; }
+    .star-float:nth-child(3) { bottom: 30%; left: 20%; font-size: 32px; animation-delay: -4s; }
+    .star-float:nth-child(4) { bottom: 15%; right: 10%; font-size: 20px; animation-delay: -1s; }
+    .star-float:nth-child(5) { top: 50%; left: 80%; font-size: 14px; animation-delay: -3s; }
+    @keyframes floatStar { 0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; } 50% { transform: translateY(-20px) rotate(20deg); opacity: 1; } }
+
+    /* Sidebar */
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1050; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.active { opacity: 1; pointer-events: all; }
+    .sidebar-panel { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: var(--card); z-index: 1060; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); border-right: 2px solid var(--accent); display: flex; flex-direction: column; }
+    .sidebar-panel.active { transform: translateX(0); }
+
+    /* Cards */
+    .product-card { background: var(--card); border: 1px solid #333; border-radius: 12px; overflow: hidden; transition: all 0.2s; }
+    .product-card:active { transform: scale(0.97); border-color: var(--accent); }
+    .featured-card { min-width: 280px; height: 350px; position: relative; border-radius: 16px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+
+    /* Nav & Modals */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(18,18,18,0.95); backdrop-filter: blur(10px); border-top: 1px solid #333; z-index: 900; padding-bottom: env(safe-area-inset-bottom); display: flex; }
+    .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #888; padding: 12px 0; background: none; border: none; cursor: pointer; flex: 1; transition: color 0.2s; }
+    .bottom-nav button.active { color: var(--accent); }
+    .modal-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,0.8); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.visible { opacity: 1; pointer-events: all; }
-    .modal-box { transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); width: 100%; max-height: 95vh; overflow-y: auto; border-radius: 24px 24px 0 0; }
+    .modal-box { transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); width: 100%; max-height: 95vh; overflow-y: auto; background: var(--card); border-top: 2px solid var(--accent); }
     .modal-overlay.visible .modal-box { transform: translateY(0); }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,250,252,0.97); backdrop-filter: blur(12px); border-top: 1px solid #f3e5f5; z-index: 900; padding-bottom: env(safe-area-inset-bottom, 0px); display: flex; }
-    .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #6B7280; transition: color 0.2s; padding: 10px 0; background: none; border: none; cursor: pointer; flex: 1; }
-    .bottom-nav button.active { color: #E91E8C; font-weight: 700; }
-    .bottom-nav button i { font-size: 20px; }
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120%); background: #1A1A1A; color: #fff; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 2000; transition: transform 0.4s; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+    .admin-input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #444; font-size: 15px; font-family: 'Inter', sans-serif; background: #2D2D2D; color: #fff; }
+    .admin-input:focus { outline: none; border-color: var(--accent); }
+    .badge-cart { position: absolute; top: 5px; right: calc(50% - 15px); background: var(--accent); color: #000; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .tabs-scroll { overflow-x: auto; scrollbar-width: none; } .tabs-scroll::-webkit-scrollbar { display: none; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120%); background: var(--accent); color: #000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 2000; transition: transform 0.4s; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .badge-cart { position: absolute; top: -5px; right: -5px; background: var(--accent); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .tabs-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .tabs-scroll::-webkit-scrollbar { display: none; }
-    .admin-scroll::-webkit-scrollbar { width: 4px; } .admin-scroll::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 2px; }
-    .admin-input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #374151; font-size: 15px; font-family: 'Lato', sans-serif; background: #1F2937; color: #f9fafb; }
-    .admin-input:focus { outline: none; border-color: #E91E8C; }
-    #lightbox { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; cursor: zoom-out; }
-    #lightbox.active { display: flex; }
-    #lightbox img { max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: 8px; }
   </style>
 </head>
 <body>
 
-  <nav class="bottom-nav">
-    <button class="active" onclick="switchScreen('catalog')" id="navCatalog"><i class="fas fa-store"></i><span>Catálogo</span></button>
-    <button onclick="switchScreen('cart')" id="navCart" class="relative"><i class="fas fa-shopping-bag"></i><span id="cartBadge" class="badge-cart hidden" style="top:-2px;right:10px">0</span><span>Carrito</span></button>
-    <button onclick="handleAdminClick()" id="navAdmin"><i class="fas fa-lock"></i><span>Admin</span></button>
-  </nav>
+  <!-- Sidebar / Barra Lateral -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div id="sidebarPanel" class="sidebar-panel">
+    <div class="p-5 border-b border-gray-700 flex justify-between items-center">
+      <h2 class="font-display text-xl text-yolk">Menú</h2>
+      <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-2" id="sidebarMenu">
+      <button onclick="filterBySection(-1); toggleSidebar();" class="w-full text-left p-3 rounded-lg bg-dark-light hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3">
+        <i class="fas fa-fire w-5"></i> Todos los productos
+      </button>
+      <!-- Las secciones se inyectarán aquí con JS -->
+    </div>
+  </div>
 
-  <main id="screenCatalog" class="pb-24">
-    <section id="heroSection" class="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div class="float-shape w-24 h-24" style="top:12%;left:8%"><img src="https://z-cdn-media.chatglm.cn/files/00165490-09ba-476b-8213-a55280ab9cf5.png?auth_key=1881213438-878015b3a93b4587bb9d129ef94e5d62-0-5bda42e0e4ad5b6736548e65ba4b023e" alt="Logo"></div>
-      <div class="float-shape w-20 h-20" style="top:60%;left:12%"><img src="https://z-cdn-media.chatglm.cn/files/00165490-09ba-476b-8213-a55280ab9cf5.png?auth_key=1881213438-878015b3a93b4587bb9d129ef94e5d62-0-5bda42e0e4ad5b6736548e65ba4b023e" alt="Logo"></div>
-      <div class="float-shape w-28 h-28" style="top:25%;right:15%"><img src="https://z-cdn-media.chatglm.cn/files/00165490-09ba-476b-8213-a55280ab9cf5.png?auth_key=1881213438-878015b3a93b4587bb9d129ef94e5d62-0-5bda42e0e4ad5b6736548e65ba4b023e" alt="Logo"></div>
-      <div class="float-shape w-16 h-16" style="bottom:15%;right:10%"><img src="https://z-cdn-media.chatglm.cn/files/00165490-09ba-476b-8213-a55280ab9cf5.png?auth_key=1881213438-878015b3a93b4587bb9d129ef94e5d62-0-5bda42e0e4ad5b6736548e65ba4b023e" alt="Logo"></div>
-      <div class="relative z-10 text-center px-6 max-w-lg">
-        <p id="heroSubtitle" class="text-fuchsia uppercase tracking-[0.3em] text-xs mb-4 font-bold">Tienda de Regalos</p>
-        <h1 id="heroTitle" class="font-display text-5xl font-black leading-tight mb-8" style="color:var(--fg)">Ecos de Moda</h1>
-        <a href="#catalogSection" class="inline-block px-8 py-4 rounded-full font-bold text-white text-base transition-all active:scale-95" style="background:var(--accent)">Ver Catálogo</a>
+  <!-- HERO SECTION -->
+  <header id="heroSection" class="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-dark">
+    <i class="fas fa-star star-float"></i>
+    <i class="fas fa-star star-float"></i>
+    <i class="fas fa-star star-float"></i>
+    <i class="fas fa-star star-float"></i>
+    <i class="fas fa-star star-float"></i>
+    
+    <div class="relative z-10 text-center px-6 border-4 border-yolk p-10 bg-black/50 backdrop-blur-sm" style="box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);">
+      <h1 class="font-display text-6xl md:text-8xl font-bold text-yolk tracking-wider mb-2" style="text-shadow: 2px 2px 0px #000;">PEAKY PAN</h1>
+      <div class="w-24 h-1 bg-yolk mx-auto my-4"></div>
+      <p class="text-xl md:text-2xl font-bold tracking-[0.2em] text-white mb-6">MERCADO MINORISTA</p>
+      <div class="inline-block bg-yolk text-black px-6 py-2 rounded font-display text-2xl tracking-widest">24 HORAS</div>
+    </div>
+
+    <a href="#destacados" class="absolute bottom-10 z-10 text-yolk animate-bounce text-3xl">
+      <i class="fas fa-chevron-down"></i>
+    </a>
+  </header>
+
+  <!-- DESTACADOS SECTION -->
+  <section id="destacados" class="py-10 px-4 bg-dark">
+    <div class="flex justify-between items-center mb-6 px-2">
+      <h2 class="font-display text-3xl text-yolk flex items-center gap-3"><i class="fas fa-star"></i> DESTACADOS</h2>
+    </div>
+    <div id="featuredScroll" class="flex gap-4 overflow-x-auto pb-4 tabs-scroll snap-x snap-mandatory">
+      <!-- Inyectado por JS -->
+    </div>
+  </section>
+
+  <!-- CATÁLOGO GENERAL -->
+  <main id="catalogSection" class="pb-28 px-4 bg-dark min-h-screen">
+    <div class="max-w-lg mx-auto pt-6">
+      <h2 class="font-display text-2xl text-white mb-6 border-b border-gray-700 pb-2" id="catalogTitle">TODOS LOS PRODUCTOS</h2>
+      <div id="productGrid" class="grid grid-cols-2 gap-3">
+        <!-- Inyectado por JS -->
       </div>
-    </section>
-    <section id="catalogSection" class="py-12 px-4">
-      <div class="max-w-lg mx-auto">
-        <h2 class="font-display text-3xl font-bold mb-6 text-center" style="color:var(--fg)">Nuestro Catálogo</h2>
-        <div id="sectionTabs" class="tabs-scroll flex gap-1 mb-6 border-b border-sand/50"></div>
-        <div id="productGrid" class="grid grid-cols-2 gap-3"></div>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <div id="lightbox" onclick="if(event.target===this)window.closeLightbox()"><button class="absolute top-4 right-4 text-white text-3xl" onclick="window.closeLightbox()">&times;</button><img id="lightboxImg" src="" alt=""></div>
+  <!-- MODALS (Carrito, Login, Admin) -->
+  <div id="cartModal" class="modal-overlay"><div class="modal-box p-6"><div class="flex justify-between items-center mb-6"><h3 class="font-display text-2xl text-yolk">MI PEDIDO</h3><button onclick="closeAllModals()" class="text-gray-400 text-2xl"><i class="fas fa-times"></i></button></div><div id="cartItems" class="space-y-4 mb-6 max-h-60 overflow-y-auto"></div><div id="checkoutForm" class="space-y-3 border-t border-gray-700 pt-4 hidden"><h4 class="font-bold text-yolk">Datos de Envío</h4><input type="text" id="checkName" placeholder="Tu nombre completo" class="admin-input"><input type="tel" id="checkPhone" placeholder="Número de teléfono" class="admin-input"><input type="text" id="checkAddress" placeholder="Dirección de entrega" class="admin-input"><select id="checkMunicipality" class="admin-input"><option value="">Selecciona el municipio</option></select><select id="checkPayment" class="admin-input"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option></select><textarea id="checkNotes" rows="2" placeholder="Notas adicionales (opcional)" class="admin-input" style="resize:none;"></textarea><div id="cartTotalSummary" class="text-right pt-2 text-white"></div><button type="button" id="sendWhatsapp" class="w-full py-3 rounded-lg font-bold text-black text-base bg-yolk active:scale-95 transition flex items-center justify-center gap-2 mt-2"><i class="fab fa-whatsapp text-xl"></i> ENVIAR PEDIDO</button></div></div></div>
 
-  <div id="cartModal" class="modal-overlay"><div class="modal-box bg-white p-6 shadow-2xl">
-    <div class="flex justify-between items-center mb-6"><h3 class="font-display text-xl font-bold" style="color:var(--fg)">Mi Carrito</h3><button type="button" onclick="window.closeAllModals()" class="text-drift text-xl"><i class="fas fa-times"></i></button></div>
-    <div id="cartItems" class="space-y-4 mb-6"></div>
-    <div id="checkoutForm" class="space-y-3 border-t border-sand pt-4 hidden">
-      <h4 class="font-bold text-base">Datos de Envío</h4>
-      <input type="text" id="checkName" placeholder="Tu nombre completo" class="admin-input border-sand bg-white text-charcoal">
-      <input type="tel" id="checkPhone" placeholder="Número de teléfono" class="admin-input border-sand bg-white text-charcoal">
-      <input type="text" id="checkAddress" placeholder="Dirección de entrega" class="admin-input border-sand bg-white text-charcoal">
-      <select id="checkMunicipality" class="admin-input border-sand bg-white text-charcoal"><option value="">Selecciona el municipio</option></select>
-      <select id="checkPayment" class="admin-input border-sand bg-white text-charcoal"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option></select>
-      <textarea id="checkNotes" rows="2" placeholder="Notas adicionales (opcional)" class="admin-input border-sand bg-white text-charcoal" style="resize:none;"></textarea>
-      <div id="cartTotalSummary" class="text-right pt-2"></div>
-      <button type="button" id="sendWhatsapp" class="w-full py-3 rounded-xl font-bold text-white text-base bg-green-600 active:scale-95 transition flex items-center justify-center gap-2"><i class="fab fa-whatsapp text-xl"></i> Enviar Pedido</button>
-    </div>
-  </div></div>
+  <div id="loginModal" class="modal-overlay"><div class="modal-box p-8"><h3 class="font-display text-2xl text-yolk mb-4 text-center">ADMIN ACCESS</h3><div class="space-y-4"><input id="loginUser" type="email" class="admin-input" placeholder="Email Admin"><input id="loginPass" type="password" class="admin-input" placeholder="Contraseña"><p id="loginError" class="text-red-500 text-sm hidden">Credenciales incorrectas.</p><button type="button" id="loginBtn" class="w-full py-3 rounded-lg font-bold text-black bg-yolk active:scale-95 transition">ENTRAR</button><button type="button" onclick="closeAllModals()" class="w-full py-3 rounded-lg font-bold text-gray-400 border border-gray-700 transition">CANCELAR</button></div></div></div>
 
-  <div id="loginModal" class="modal-overlay"><div class="modal-box bg-white p-8 shadow-2xl"><h3 class="font-display text-xl font-bold mb-4 text-center" style="color:var(--fg)">Acceso Admin</h3><div class="space-y-4"><input id="loginUser" type="email" class="admin-input border-sand bg-white text-charcoal" placeholder="Email"><input id="loginPass" type="password" class="admin-input border-sand bg-white text-charcoal" placeholder="Contraseña"><p id="loginError" class="text-red-500 text-sm hidden">Credenciales incorrectas. ¿Creaste el usuario en Firebase?</p><button type="button" id="loginBtn" class="w-full py-3 rounded-xl font-bold text-white text-base active:scale-95 transition" style="background:var(--accent)">Iniciar Sesión</button><button type="button" onclick="window.closeAllModals()" class="w-full py-3 rounded-xl font-bold text-drift border border-sand text-base">Cancelar</button></div></div></div>
-
-  <div id="adminModal" class="modal-overlay"><div class="modal-box bg-admin text-white flex flex-col shadow-2xl" style="height:100vh; max-height:100vh; border-radius:0;">
-    <header class="p-4 border-b border-gray-700 flex justify-between items-center shrink-0"><h2 class="font-display text-lg font-bold text-fuchsia">Admin</h2><button type="button" onclick="window.closeAllModals()" class="w-10 h-10 rounded-full hover:bg-gray-800 flex items-center justify-center"><i class="fas fa-times text-xl"></i></button></header>
-    <div class="flex gap-1 p-3 border-b border-gray-700 shrink-0 bg-adminCard/50 overflow-x-auto tabs-scroll">
-      <button type="button" onclick="window.showAdminPage('dashboard')" class="admin-tab px-3 py-2 rounded-lg text-xs font-bold text-gray-300 shrink-0" data-page="dashboard"><i class="fas fa-chart-bar mr-1"></i> Inicio</button>
-      <button type="button" onclick="window.showAdminPage('sections')" class="admin-tab px-3 py-2 rounded-lg text-xs font-bold text-gray-300 shrink-0" data-page="sections"><i class="fas fa-layer-group mr-1"></i> Secciones</button>
-      <button type="button" onclick="window.showAdminPage('products')" class="admin-tab px-3 py-2 rounded-lg text-xs font-bold text-gray-300 shrink-0" data-page="products"><i class="fas fa-boxes-stacked mr-1"></i> Productos</button>
-      <button type="button" onclick="window.showAdminPage('appearance')" class="admin-tab px-3 py-2 rounded-lg text-xs font-bold text-gray-300 shrink-0" data-page="appearance"><i class="fas fa-palette mr-1"></i> Aspecto</button>
-      <button type="button" onclick="window.showAdminPage('settings')" class="admin-tab px-3 py-2 rounded-lg text-xs font-bold text-gray-300 shrink-0" data-page="settings"><i class="fas fa-cog mr-1"></i> Config</button>
-    </div>
-    <div id="adminContent" class="flex-1 overflow-y-auto admin-scroll p-5"></div>
-    <footer class="p-3 border-t border-gray-700 shrink-0"><button type="button" id="adminLogout" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-red-900/30 text-red-400 font-bold transition"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button></footer>
-  </div></div>
+  <div id="adminModal" class="modal-overlay"><div class="modal-box bg-[#111] text-white flex flex-col" style="height:100vh; max-height:100vh; border-radius:0; border-top:none;"><header class="p-4 border-b border-gray-800 flex justify-between items-center shrink-0"><h2 class="font-display text-lg text-yolk">PANEL ADMIN</h2><button onclick="closeAllModals()" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button></header><div class="flex gap-1 p-3 border-b border-gray-800 shrink-0 bg-black/50 overflow-x-auto tabs-scroll"><button type="button" onclick="showAdminPage('dashboard')" class="admin-tab px-3 py-2 rounded text-xs font-bold text-gray-400 shrink-0" data-page="dashboard">Inicio</button><button type="button" onclick="showAdminPage('sections')" class="admin-tab px-3 py-2 rounded text-xs font-bold text-gray-400 shrink-0" data-page="sections">Secciones</button><button type="button" onclick="showAdminPage('products')" class="admin-tab px-3 py-2 rounded text-xs font-bold text-gray-400 shrink-0" data-page="products">Productos</button><button type="button" onclick="showAdminPage('settings')" class="admin-tab px-3 py-2 rounded text-xs font-bold text-gray-400 shrink-0" data-page="settings">Config</button></div><div id="adminContent" class="flex-1 overflow-y-auto p-5 bg-[#111]"></div><footer class="p-3 border-t border-gray-800 shrink-0 bg-[#111]"><button type="button" id="adminLogout" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg hover:bg-red-900/30 text-red-400 font-bold transition"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button></footer></div></div>
 
   <div id="toast" class="toast"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="active"><i class="fas fa-home text-xl"></i><span>Inicio</span></button>
+    <button onclick="toggleSidebar()" id="navMenu"><i class="fas fa-bars text-xl"></i><span>Menú</span></button>
+    <button onclick="openCart()" id="navCart" class="relative"><i class="fas fa-shopping-bag text-xl"></i><span id="cartBadge" class="badge-cart hidden">0</span><span>Pedido</span></button>
+    <button onclick="handleAdminClick()" id="navAdmin"><i class="fas fa-user-lock text-xl"></i><span>Admin</span></button>
+  </nav>
 
-    const firebaseConfig = { 
-      apiKey: "AIzaSyCHQvXHPyZbiqlhMsoDsSqkjrQ5wATj-Cw", 
-      authDomain: "ecosdemoda-40202.firebaseapp.com", 
-      projectId: "ecosdemoda-40202", 
-      storageBucket: "ecosdemoda-40202.firebasestorage.app", 
-      messagingSenderId: "1077783413744", 
-      appId: "1:1077783413744:web:bebfb4f7956f6472709335" 
-    };
-    
-    const app = initializeApp(firebaseConfig); 
-    const auth = getAuth(app); 
-    const db = getFirestore(app);
+  <script>
+    // ============== CONFIGURACIÓN SUPABASE (Mismas que tu otra tienda) ==============
+    const SUPABASE_URL = 'https://hqijdiyidouvofdjafhl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_5F3Cpg8wwY8kiqqeSJdFIQ_HvKEx6X3';
+    let supabaseClient;
+    try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.error(e); }
+    // =================================================================================
 
-    let storeData = { sections: [] }, isLoggedIn = false, currentAdminPage = 'dashboard', activeSectionTab = -1, adminSelectedSection = 0, cart = [], editingSectionId = null, editingProductId = null, editingProductSectionId = null;
+    let storeData = { sections: [], shippingZones: [] }, isLoggedIn = false, currentAdminPage = 'dashboard', activeSectionTab = -1, adminSelectedSection = 0, cart = [], editingSectionId = null, editingProductId = null, editingProductSectionId = null;
 
-    const DEFAULT_DATA = {
-      storeName: 'Ecos de Moda', heroSubtitle: 'Tienda de Regalos', heroTitle: 'Ecos de Moda',
-      backgroundColor: '#FFFAFC', headerColor: '#1A1A1A', accentColor: '#E91E8C',
-      whatsappNumber: '53000000', exchangeRate: 300,
-      shippingZones: [ { name: 'Habana Vieja', cost: 300 }, { name: 'Centro Habana', cost: 300 }, { name: 'Playa', cost: 500 } ],
-      sections: [
-        { id: 1, name: 'Cumpleaños', icon: 'fas fa-birthday-cake', products: [ { id: 1, name: 'Set de Velas', priceCUP: 3000, quantity: 5, image: 'https://picsum.photos/seed/vela01/400/400' } ] },
-        { id: 2, name: 'Bodas', icon: 'fas fa-ring', products: [ { id: 2, name: 'Set de Copas', priceCUP: 7500, quantity: 2, image: 'https://picsum.photos/seed/copas05/400/400' } ] }
-      ]
-    };
+    function sanitizeData() { if (!storeData.sections) storeData.sections = []; if (!storeData.shippingZones) storeData.shippingZones = []; storeData.exchangeRate = Number(storeData.exchangeRate) || 300; storeData.sections.forEach(s => { if (!s.products) s.products = []; s.id = Number(s.id); s.products.forEach(p => { p.id = Number(p.id); p.priceCUP = Number(p.priceCUP) || 0; p.quantity = Number(p.quantity) || 10; }); }); }
 
-    function sanitizeData() { if (!storeData.sections) storeData.sections = []; if (!storeData.shippingZones) storeData.shippingZones = []; storeData.exchangeRate = Number(storeData.exchangeRate) || 300; storeData.sections.forEach(s => { if (!s.products) s.products = []; s.id = Number(s.id); s.products.forEach(p => { p.id = Number(p.id); if (p.price !== undefined && p.priceCUP === undefined) { p.priceCUP = Math.round(Number(p.price) * (storeData.exchangeRate || 300)); delete p.price; } p.priceCUP = Number(p.priceCUP) || 0; p.quantity = Number(p.quantity) || 10; }); }); }
-
-    async function initDatabase() {
+    async function fetchStoreData() {
+      if (!supabaseClient) return;
       try {
-        const d = await getDoc(doc(db, "store", "data"));
-        if (d.exists()) { storeData = d.data(); } else { storeData = JSON.parse(JSON.stringify(DEFAULT_DATA)); await setDoc(doc(db, "store", "data"), storeData); }
-      } catch (e) { console.error("Error carga inicial:", e); }
-      sanitizeData(); applyAppearance(); renderCatalog();
-      onSnapshot(doc(db, "store", "data"), (d) => { if (d.exists()) { storeData = d.data(); sanitizeData(); applyAppearance(); renderCatalog(); if (document.getElementById('adminModal').classList.contains('visible')) window.showAdminPage(currentAdminPage); } }, (error) => { console.error("Error tiempo real:", error); });
-    }
-    
-    async function saveData() { 
-      try { await setDoc(doc(db, "store", "data"), JSON.parse(JSON.stringify(storeData))); } catch (e) { 
-        console.error("Error al guardar:", e); 
-        showToast('Error al guardar. ¿Pegaste una URL de imagen muy larga?', 'error'); throw e; 
-      } 
+        const { data: settings } = await supabaseClient.from('store_settings').select('*').eq('id', 1).single();
+        if (settings) { storeData = { ...storeData, ...settings }; storeData.shippingZones = settings.shippingZones ? (typeof settings.shippingZones === 'string' ? JSON.parse(settings.shippingZones) : settings.shippingZones) : []; }
+        const { data: secs } = await supabaseClient.from('sections').select('*').order('id', { ascending: true });
+        const { data: prods } = await supabaseClient.from('products').select('*');
+        storeData.sections = [];
+        if (secs) { secs.forEach(s => { s.products = prods ? prods.filter(p => p.section_id === s.id) : []; storeData.sections.push(s); }); }
+      } catch(e) { console.error("Fetch error:", e); }
+      sanitizeData(); renderSidebar(); renderFeatured(); renderCatalog();
+      if (document.getElementById('adminModal').classList.contains('visible')) showAdminPage(currentAdminPage);
     }
 
-    function initAuth() { onAuthStateChanged(auth, (u) => { isLoggedIn = !!u; document.getElementById('navAdmin').querySelector('i').className = isLoggedIn ? 'fas fa-unlock text-fuchsia' : 'fas fa-lock'; }); }
-    async function handleLogin() { try { await signInWithEmailAndPassword(auth, document.getElementById('loginUser').value, document.getElementById('loginPass').value); closeAllModals(); openAdminPanel('dashboard'); } catch (e) { document.getElementById('loginError').classList.remove('hidden'); } }
-    async function handleLogout() { await signOut(auth); closeAllModals(); showToast('Sesión cerrada', 'info'); }
+    async function uploadImage(file) {
+      if(!file || !supabaseClient) return null;
+      const fileExt = file.name.split('.').pop(); const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`; const filePath = `productos/${fileName}`;
+      const { error } = await supabaseClient.storage.from('ecos_imagenes').upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (error) { showToast('Error subiendo imagen', 'error'); return null; }
+      const { data: publicUrlData } = supabaseClient.storage.from('ecos_imagenes').getPublicUrl(filePath);
+      return publicUrlData.publicUrl;
+    }
 
-    function applyAppearance() { document.documentElement.style.setProperty('--bg', storeData.backgroundColor || '#FFFAFC'); document.documentElement.style.setProperty('--fg', storeData.headerColor || '#1A1A1A'); document.documentElement.style.setProperty('--accent', storeData.accentColor || '#E91E8C'); document.body.style.background = storeData.backgroundColor; document.body.style.color = storeData.headerColor; document.getElementById('heroTitle').textContent = storeData.heroTitle || 'Ecos de Moda'; document.getElementById('heroSubtitle').textContent = storeData.heroSubtitle || 'Tienda de Regalos'; }
+    function checkAuth() { if(!supabaseClient) return; supabaseClient.auth.onAuthStateChange((e, s) => { isLoggedIn = !!s; document.getElementById('navAdmin').querySelector('i').className = isLoggedIn ? 'fas fa-user-check text-yolk' : 'fas fa-user-lock'; }); }
+    async function handleLogin() { if(!supabaseClient) return; try { await supabaseClient.auth.signInWithPassword({ email: document.getElementById('loginUser').value, password: document.getElementById('loginPass').value }); closeAllModals(); openModal('adminModal'); showAdminPage('dashboard'); } catch (e) { document.getElementById('loginError').classList.remove('hidden'); } }
+    async function handleLogout() { if(supabaseClient) await supabaseClient.auth.signOut(); closeAllModals(); showToast('Sesión cerrada'); }
+
     function getUSD(priceCUP) { return Number(priceCUP) / (Number(storeData.exchangeRate) || 300); }
-    function formatPrice(priceCUP) { return `${getUSD(priceCUP).toFixed(2)} USD <span class="text-xs text-drift font-normal">| ${Math.round(Number(priceCUP)).toLocaleString()} CUP</span>`; }
+    function formatPrice(priceCUP) { return `<span class="text-yolk font-bold">${getUSD(priceCUP).toFixed(2)} USD</span> <span class="text-xs text-gray-400 font-normal">(${Math.round(Number(priceCUP)).toLocaleString()} CUP)</span>`; }
 
-    window.openLightbox = function(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('active'); };
-    window.closeLightbox = function() { document.getElementById('lightbox').classList.remove('active'); };
-
-    function switchScreen(screen) {
-      document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
-      if (screen === 'catalog') { document.getElementById('navCatalog').classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); }
-      else if (screen === 'cart') { document.getElementById('navCart').classList.add('active'); openModal('cartModal'); renderCartModal(); }
+    // --- UI Functions ---
+    function toggleSidebar() { document.getElementById('sidebarOverlay').classList.toggle('active'); document.getElementById('sidebarPanel').classList.toggle('active'); }
+    function filterBySection(index) { 
+      activeSectionTab = index; 
+      document.getElementById('catalogTitle').innerText = index === -1 ? 'TODOS LOS PRODUCTOS' : storeData.sections[index].name.toUpperCase();
+      renderCatalog(); 
     }
 
-    function renderCatalog() { 
-      try {
-        if (activeSectionTab >= storeData.sections.length) activeSectionTab = -1;
-        const tC = document.getElementById('sectionTabs'), gC = document.getElementById('productGrid'), secs = storeData.sections || []; 
-        let tH = `<button type="button" class="tab-btn ${activeSectionTab === -1 ? 'active' : ''}" onclick="window.setActiveTab(-1)">Todos</button>`; 
-        secs.forEach((s, i) => { if(!s) return; tH += `<button type="button" class="tab-btn ${activeSectionTab === i ? 'active' : ''}" onclick="window.setActiveTab(${i})"><i class="${s.icon || 'fas fa-gift'} mr-1"></i>${s.name || ''}</button>`; }); 
-        tC.innerHTML = tH; let pH = ''; const showS = activeSectionTab === -1 ? secs : (secs[activeSectionTab] ? [secs[activeSectionTab]] : secs); 
-        showS.forEach(s => { if (!s || !s.products) return; if (activeSectionTab === -1 && secs.length > 1) pH += `<div class="col-span-2 mt-4 mb-1"><h3 class="font-display text-lg font-bold"><i class="${s.icon || ''} mr-2" style="color:var(--accent)"></i>${s.name || ''}</h3></div>`; s.products.forEach(p => { if(!p) return; const qty = Number(p.quantity) || 0; const isAvailable = qty > 0; const imgSrc = p.image || 'https://picsum.photos/seed/default/400/400';
-            pH += `<article class="product-card shadow-md border border-sand/50 flex flex-col"><div class="overflow-hidden h-40 bg-sand/20 cursor-zoom-in" onclick="window.openLightbox('${imgSrc}')"><img src="${imgSrc}" alt="${p.name || ''}" class="w-full h-full object-cover" loading="lazy"></div><div class="p-3 flex flex-col flex-grow"><h4 class="font-display text-sm font-bold mb-1 leading-tight" style="color:var(--fg)">${p.name || ''}</h4><p class="text-[11px] ${isAvailable ? 'text-green-600' : 'text-red-500'} font-semibold mb-1">${isAvailable ? `<i class="fas fa-check-circle mr-1"></i>Disp: ${qty}` : '<i class="fas fa-times-circle mr-1"></i>Agotado'}</p><p class="text-sm font-bold mb-3" style="color:var(--accent)">${formatPrice(p.priceCUP || 0)}</p><div class="mt-auto">${isAvailable ? `<button type="button" onclick="window.addToCart(${s.id}, ${p.id})" class="w-full py-2 rounded-lg font-bold text-white text-xs active:scale-95 transition" style="background:var(--accent)"><i class="fas fa-bag-shopping mr-1"></i>Agregar</button>` : `<button type="button" disabled class="w-full py-2 rounded-lg font-bold text-white bg-gray-400 cursor-not-allowed text-xs">Agotado</button>`}</div></div></article>`; }); }); gC.innerHTML = pH || '<p class="col-span-2 text-center text-drift py-12">No hay productos.</p>'; 
-      } catch(e) { console.error("Error render:", e); }
+    function renderSidebar() {
+      const menu = document.getElementById('sidebarMenu');
+      let html = `<button onclick="filterBySection(-1); toggleSidebar();" class="w-full text-left p-3 rounded-lg bg-dark-light hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 mb-2"><i class="fas fa-fire w-5"></i> Todos</button>`;
+      storeData.sections.forEach((s, i) => {
+        html += `<button onclick="filterBySection(${i}); toggleSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-yolk hover:text-black transition font-medium flex items-center gap-3 text-gray-300"><i class="${s.icon || 'fas fa-utensils'} w-5 text-yolk"></i> ${s.name}</button>`;
+      });
+      menu.innerHTML = html;
     }
-    
-    window.setActiveTab = function(i) { activeSectionTab = i; renderCatalog(); };
-    window.addToCart = function(sId, pId) { const s = storeData.sections.find(x => x.id === Number(sId)); if(!s) return; const p = s.products.find(x => x.id === Number(pId)); if(!p) return; const qty = Number(p.quantity) || 0; const currentInCart = cart.find(x => x.id === p.id)?.quantity || 0; if (currentInCart >= qty) { showToast('No hay más unidades', 'error'); return; } const e = cart.find(x => x.id === p.id); if (e) e.quantity++; else cart.push({ id: p.id, name: p.name, priceCUP: Number(p.priceCUP) || 0, image: p.image, quantity: 1 }); updateCartBadge(); showToast('Añadido', 'success'); }
-    window.removeFromCart = function(pId) { cart = cart.filter(x => x.id !== pId); renderCartModal(); updateCartBadge(); }
-    window.updateQuantity = function(pId, d) { const i = cart.find(x => x.id === pId); if (!i) return; i.quantity += d; if (i.quantity <= 0) { removeFromCart(pId); return; } renderCartModal(); updateCartBadge(); }
+
+    function renderFeatured() {
+      const grid = document.getElementById('featuredScroll');
+      // Tomar los primeros 5 productos de toda la tienda para destacar
+      const allProds = storeData.sections.flatMap(s => s.products.map(p => ({...p, sectionName: s.name})));
+      const featured = allProds.slice(0, 5);
+      
+      if(featured.length === 0) { grid.innerHTML = '<p class="text-gray-500 p-4">Aún no hay productos para destacar.</p>'; return; }
+
+      grid.innerHTML = featured.map(p => `
+        <div class="featured-card snap-start relative bg-dark-card">
+          <img src="${p.image_url || 'https://picsum.photos/400/400'}" class="w-full h-full object-cover opacity-80">
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <p class="text-xs text-yolk font-bold mb-1">${p.sectionName}</p>
+            <h3 class="font-display text-xl text-white leading-tight mb-2">${p.name}</h3>
+            <div class="flex justify-between items-end">
+              <div>${formatPrice(p.priceCUP)}</div>
+              <button onclick="addToCart(${p.id})" class="bg-yolk text-black px-3 py-1 rounded font-bold text-xs active:scale-95">PEDIR</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('productGrid');
+      const secs = storeData.sections || [];
+      const showS = activeSectionTab === -1 ? secs : (secs[activeSectionTab] ? [secs[activeSectionTab]] : []);
+      
+      let html = '';
+      showS.forEach(s => {
+        if (!s.products || s.products.length === 0) return;
+        if (activeSectionTab === -1) html += `<div class="col-span-2 mt-4 mb-2"><h3 class="font-display text-lg text-yolk flex items-center gap-2"><i class="${s.icon}"></i> ${s.name}</h3></div>`;
+        s.products.forEach(p => {
+          const qty = Number(p.quantity) || 0; const isAv = qty > 0;
+          html += `<div class="product-card flex flex-col">
+            <img src="${p.image_url || 'https://picsum.photos/400/400'}" class="w-full h-36 object-cover">
+            <div class="p-3 flex flex-col flex-grow">
+              <h4 class="font-bold text-sm text-white leading-tight mb-1 truncate">${p.name}</h4>
+              <p class="text-[10px] ${isAv ? 'text-green-400' : 'text-red-400'} mb-2">${isAv ? 'Disponible' : 'Agotado'}</p>
+              <div class="mt-auto">${formatPrice(p.priceCUP)}</div>
+              ${isAv ? `<button onclick="addToCart(${p.id})" class="w-full mt-2 py-2 rounded bg-yolk text-black font-bold text-xs active:scale-95 transition">AGREGAR</button>` : '<button disabled class="w-full mt-2 py-2 rounded bg-gray-700 text-gray-500 font-bold text-xs cursor-not-allowed">AGOTADO</button>'}
+            </div>
+          </div>`;
+        });
+      });
+      grid.innerHTML = html || '<p class="col-span-2 text-center text-gray-500 py-12">No hay productos en esta sección.</p>';
+    }
+
+    // --- Cart Logic (Idéntico al anterior) ---
+    function addToCart(pId) { const p = storeData.sections.flatMap(s => s.products).find(x => x.id === Number(pId)); if(!p) return; const current = cart.find(x => x.id === p.id)?.quantity || 0; if (current >= (Number(p.quantity)||0)) { showToast('Sin stock suficiente'); return; } const e = cart.find(x => x.id === p.id); if (e) e.quantity++; else cart.push({ id: p.id, name: p.name, priceCUP: Number(p.priceCUP) || 0, image: p.image_url, quantity: 1 }); updateCartBadge(); showToast('Añadido al pedido'); }
+    function openCart() { openModal('cartModal'); renderCartModal(); }
     function updateCartBadge() { const t = cart.reduce((s, i) => s + i.quantity, 0), b = document.getElementById('cartBadge'); if (t > 0) { b.textContent = t; b.classList.remove('hidden'); } else b.classList.add('hidden'); }
     
-    function renderCartModal() { 
-      const cI = document.getElementById('cartItems'), cF = document.getElementById('checkoutForm'); 
-      if (cart.length === 0) { cI.innerHTML = '<p class="text-center text-drift py-8">Tu carrito está vacío</p>'; cF.classList.add('hidden'); return; } 
-      let h = '', tCUP = 0; cart.forEach(i => { const subCUP = (Number(i.priceCUP) || 0) * i.quantity; tCUP += subCUP; h += `<div class="flex gap-3 items-center border-b border-sand pb-3"><img src="${i.image || ''}" class="w-14 h-14 rounded-lg object-cover"><div class="flex-grow"><h4 class="font-bold text-sm">${i.name || ''}</h4><p class="text-xs" style="color:var(--accent)">${formatPrice(i.priceCUP || 0)}</p></div><div class="flex items-center gap-2"><button type="button" onclick="window.updateQuantity(${i.id}, -1)" class="w-7 h-7 rounded-full bg-sand flex items-center justify-center text-xs">-</button><span class="font-bold w-4 text-center text-sm">${i.quantity}</span><button type="button" onclick="window.updateQuantity(${i.id}, 1)" class="w-7 h-7 rounded-full bg-sand flex items-center justify-center text-xs">+</button></div></div>`; }); cI.innerHTML = h; 
-      const sel = document.getElementById('checkMunicipality'); sel.innerHTML = '<option value="">Selecciona el municipio</option>'; (storeData.shippingZones || []).forEach(z => { sel.innerHTML += `<option value="${z.name}" data-cost="${z.cost}">${z.name} (+${Math.round(z.cost).toLocaleString()} CUP)</option>`; });
-      function updateTotalDisplay() { const selectedOption = sel.options[sel.selectedIndex]; const shippingCost = Number(selectedOption.dataset.cost) || 0; const totalCUP = tCUP + shippingCost; document.getElementById('cartTotalSummary').innerHTML = `<p class="text-xs text-drift">Productos: ${getUSD(tCUP).toFixed(2)} USD | ${Math.round(tCUP).toLocaleString()} CUP</p>${shippingCost > 0 ? `<p class="text-xs text-drift"><i class="fas fa-truck mr-1"></i>Mensajería: ${getUSD(shippingCost).toFixed(2)} USD | ${Math.round(shippingCost).toLocaleString()} CUP</p>` : ''}<p class="font-bold text-lg mt-1" style="color:var(--accent)">Total: ${getUSD(totalCUP).toFixed(2)} USD | ${Math.round(totalCUP).toLocaleString()} CUP</p>`; }
-      sel.onchange = updateTotalDisplay; updateTotalDisplay(); cF.classList.remove('hidden'); 
+    function renderCartModal() {
+      const cI = document.getElementById('cartItems'), cF = document.getElementById('checkoutForm');
+      if (cart.length === 0) { cI.innerHTML = '<p class="text-center text-gray-500 py-8">Tu pedido está vacío</p>'; cF.classList.add('hidden'); return; }
+      let h = '', tCUP = 0;
+      cart.forEach(i => { const sub = (Number(i.priceCUP) || 0) * i.quantity; tCUP += sub; h += `<div class="flex gap-3 items-center border-b border-gray-700 pb-3"><img src="${i.image || ''}" class="w-14 h-14 rounded-lg object-cover"><div class="flex-grow"><h4 class="font-bold text-sm text-white">${i.name}</h4><p class="text-xs text-yolk">${formatPrice(i.priceCUP)}</p></div><div class="flex items-center gap-2"><button onclick="updateQuantity(${i.id}, -1)" class="w-7 h-7 rounded bg-gray-700 flex items-center justify-center text-xs text-white">-</button><span class="font-bold w-4 text-center text-sm text-white">${i.quantity}</span><button onclick="updateQuantity(${i.id}, 1)" class="w-7 h-7 rounded bg-gray-700 flex items-center justify-center text-xs text-white">+</button></div></div>`; });
+      cI.innerHTML = h;
+      const sel = document.getElementById('checkMunicipality'); sel.innerHTML = '<option value="">Selecciona el municipio</option>'; (storeData.shippingZones || []).forEach(z => { sel.innerHTML += `<option value="${z.name}" data-cost="${z.cost}">${z.name} (+${Math.round(z.cost)} CUP)</option>`; });
+      function updateTotal() { const cost = Number(sel.options[sel.selectedIndex].dataset.cost) || 0; const total = tCUP + cost; document.getElementById('cartTotalSummary').innerHTML = `<p class="text-sm text-gray-400">Subtotal: ${getUSD(tCUP).toFixed(2)} USD</p>${cost > 0 ? `<p class="text-sm text-gray-400">Envío: ${getUSD(cost).toFixed(2)} USD</p>` : ''}<p class="font-bold text-xl text-yolk mt-1">TOTAL: ${getUSD(total).toFixed(2)} USD</p>`; }
+      sel.onchange = updateTotal; updateTotal(); cF.classList.remove('hidden');
     }
-    
-    function sendWhatsappOrder() { 
-      const name = document.getElementById('checkName').value.trim(); const phone = document.getElementById('checkPhone').value.trim(); const address = document.getElementById('checkAddress').value.trim(); const muniSelect = document.getElementById('checkMunicipality'); const municipality = muniSelect.value; const shippingCost = Number(muniSelect.options[muniSelect.selectedIndex].dataset.cost) || 0; const payment = document.getElementById('checkPayment').value; const notes = document.getElementById('checkNotes').value.trim(); 
-      if (!name || !phone || !address || !municipality) { showToast('Completa nombre, teléfono, dirección y municipio', 'error'); return; } 
-      let msg = `🛒 *Pedido de ${storeData.storeName}*\n\n👤 *Cliente:* ${name}\n📞 *Teléfono:* ${phone}\n📍 *Dirección:* ${address}, ${municipality}\n💳 *Pago:* ${payment}\n`; if (notes) msg += `📝 *Notas:* ${notes}\n`; msg += `\n📦 *Productos:*\n`; 
-      let tCUP = 0; cart.forEach(i => { const subCUP = (Number(i.priceCUP) || 0) * i.quantity; tCUP += subCUP; msg += `  • ${i.name} x${i.quantity} — ${getUSD(subCUP).toFixed(2)} USD\n`; for(let s of storeData.sections) { const p = s.products.find(x => x.id === i.id); if(p) { p.quantity = Math.max(0, (Number(p.quantity) || 0) - i.quantity); } } }); const totalCUP = tCUP + shippingCost;
-      msg += `\n🚚 *Mensajería a ${municipality}:* ${getUSD(shippingCost).toFixed(2)} USD | ${Math.round(shippingCost).toLocaleString()} CUP\n`; msg += `\n💰 *Total Final:* ${getUSD(totalCUP).toFixed(2)} USD | ${Math.round(totalCUP).toLocaleString()} CUP`; 
-      saveData().catch(e => console.error("Error actualizando inventario:", e)); window.open(`https://wa.me/${(storeData.whatsappNumber || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank'); cart = []; updateCartBadge(); closeAllModals(); 
+    window.updateQuantity = function(pId, d) { const i = cart.find(x => x.id === pId); if (!i) return; i.quantity += d; if (i.quantity <= 0) { cart = cart.filter(x => x.id !== pId); } renderCartModal(); updateCartBadge(); };
+
+    async function sendWhatsappOrder() {
+      const name = document.getElementById('checkName').value.trim(), phone = document.getElementById('checkPhone').value.trim(), address = document.getElementById('checkAddress').value.trim(), muniS = document.getElementById('checkMunicipality'), muni = muniS.value, shipCost = Number(muniS.options[muniS.selectedIndex].dataset.cost) || 0, pay = document.getElementById('checkPayment').value, notes = document.getElementById('checkNotes').value.trim();
+      if (!name || !phone || !address || !muni) { showToast('Completa todos los datos', 'error'); return; }
+      let msg = `🍔 *Pedido Peaky Pan*\n\n👤 *Cliente:* ${name}\n📞 *Tel:* ${phone}\n📍 *Dir:* ${address}, ${muni}\n💳 *Pago:* ${pay}\n`; if (notes) msg += `📝 *Notas:* ${notes}\n`; msg += `\n📦 *Productos:*\n`;
+      let tCUP = 0, updates = [];
+      cart.forEach(i => { const sub = (Number(i.priceCUP) || 0) * i.quantity; tCUP += sub; msg += `  • ${i.name} x${i.quantity} — ${getUSD(sub).toFixed(2)} USD\n`; const p = storeData.sections.flatMap(s => s.products).find(x => x.id === i.id); if(p) { p.quantity = Math.max(0, (Number(p.quantity) || 0) - i.quantity); updates.push(supabaseClient.from('products').update({ quantity: p.quantity }).eq('id', p.id)); } });
+      const totalCUP = tCUP + shipCost; msg += `\n🚚 *Envío:* ${getUSD(shipCost).toFixed(2)} USD\n\n💰 *TOTAL:* ${getUSD(totalCUP).toFixed(2)} USD`;
+      try { await Promise.all(updates); await fetchStoreData(); } catch(e) {}
+      window.open(`https://wa.me/${(storeData.whatsappNumber || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+      cart = []; updateCartBadge(); closeAllModals();
     }
 
-    function openModal(id) { document.getElementById(id).classList.add('visible'); if (id === 'cartModal') renderCartModal(); }
-    function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('visible')); }
-    function openAdminPanel(page) { openModal('adminModal'); window.showAdminPage(page); }
-    function handleAdminClick() { isLoggedIn ? openAdminPanel('dashboard') : openModal('loginModal'); }
-    let toastTimer; function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type; clearTimeout(toastTimer); setTimeout(() => t.classList.add('show'), 10); toastTimer = setTimeout(() => t.classList.remove('show'), 3500); }
+    // --- Modals & Admin Logic (Adaptado colores) ---
+    function openModal(id) { document.getElementById(id).classList.add('visible'); }
+    function closeAllModals() { document.querySelectorAll('.modal-overlay, .sidebar-overlay').forEach(m => m.classList.remove('visible')); document.getElementById('sidebarPanel').classList.remove('active'); }
+    function handleAdminClick() { isLoggedIn ? (openModal('adminModal'), showAdminPage('dashboard')) : openModal('loginModal'); }
+    let toastTimer; function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.style.background = type === 'error' ? '#B91C1C' : '#FFD700'; t.style.color = type === 'error' ? '#FFF' : '#000'; clearTimeout(toastTimer); setTimeout(() => t.classList.add('show'), 10); toastTimer = setTimeout(() => t.classList.remove('show'), 3000); }
 
-    function showAdminPage(pg) { currentAdminPage = pg; editingSectionId = null; editingProductId = null; document.querySelectorAll('.admin-tab').forEach(b => { const isActive = b.dataset.page === pg; b.classList.toggle('bg-fuchsia/20', isActive); b.classList.toggle('text-fuchsia', isActive); b.classList.toggle('text-gray-300', !isActive); }); const c = document.getElementById('adminContent'); if (pg === 'dashboard') renderDashboard(c); else if (pg === 'sections') renderSectionList(c); else if (pg === 'products') renderProductList(c); else if (pg === 'appearance') renderAppearance(c); else if (pg === 'settings') renderSettings(c); }
-    window.showAdminPage = showAdminPage;
-
-    function renderDashboard(el) { let t = 0; storeData.sections.forEach(s => t += (s.products || []).length); el.innerHTML = `<div class="grid grid-cols-2 gap-4"><div class="bg-adminCard rounded-xl p-5 border border-gray-700"><p class="text-gray-400 text-xs">Secciones</p><p class="text-2xl font-bold text-fuchsia">${storeData.sections.length}</p></div><div class="bg-adminCard rounded-xl p-5 border border-gray-700"><p class="text-gray-400 text-xs">Productos</p><p class="text-2xl font-bold">${t}</p></div></div>`; }
-
-    function renderSectionList(el) { let l = ''; storeData.sections.forEach(s => { l += `<div class="bg-adminCard rounded-xl p-4 border border-gray-700 flex justify-between items-center gap-3"><div class="flex items-center gap-3"><i class="${s.icon || 'fas fa-gift'} text-fuchsia"></i><span class="font-bold text-sm">${s.name || ''}</span></div><div class="flex gap-2"><button type="button" onclick="window.renderSectionForm(${s.id})" class="px-3 py-2 rounded-lg bg-gray-700 font-bold text-xs">Editar</button><button type="button" onclick="window.deleteSection(${s.id})" class="px-3 py-2 rounded-lg bg-red-900/30 text-red-400 font-bold text-xs">Eliminar</button></div></div>`; }); el.innerHTML = `<div class="mb-4"><button type="button" onclick="window.renderSectionForm(null)" class="w-full px-4 py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)"><i class="fas fa-plus mr-2"></i>Nueva Sección</button></div><div class="space-y-3">${l}</div>`; }
-    window.renderSectionForm = function(id) { editingSectionId = id; const s = id ? storeData.sections.find(x => x.id === Number(id)) : null; const c = document.getElementById('adminContent'); c.innerHTML = `<button type="button" onclick="window.showAdminPage('sections')" class="text-drift hover:text-white mb-4 inline-flex items-center gap-2 text-sm"><i class="fas fa-arrow-left"></i> Volver</button><h3 class="font-display text-lg font-bold mb-4">${s ? 'Editar' : 'Nueva'} Sección</h3><div class="space-y-3"><div><label class="block text-xs text-gray-400 mb-1">Nombre *</label><input id="sf_name" type="text" value="${s ? s.name : ''}" class="admin-input"></div><div><label class="block text-xs text-gray-400 mb-1">Icono</label><input id="sf_icon" type="text" value="${s ? s.icon : 'fas fa-gift'}" class="admin-input"></div><button type="button" onclick="window.saveSection()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)">Guardar</button></div>`; };
-    window.saveSection = async function() { const name = document.getElementById('sf_name').value.trim(), icon = document.getElementById('sf_icon').value.trim() || 'fas fa-gift'; if (!name) { showToast('Nombre obligatorio', 'error'); return; } if (editingSectionId) { const s = storeData.sections.find(x => x.id === Number(editingSectionId)); if (s) { s.name = name; s.icon = icon; } } else { storeData.sections.push({ id: Date.now(), name, icon, products: [] }); } try { await saveData(); showToast('Sección guardada', 'success'); window.showAdminPage('sections'); } catch(e) {} };
-    window.deleteSection = async function(id) { if (!confirm('¿Eliminar sección y sus productos?')) return; storeData.sections = storeData.sections.filter(x => x.id !== Number(id)); try { await saveData(); showToast('Eliminada', 'success'); window.showAdminPage('sections'); } catch(e) {} };
-
-    function renderProductList(el) { if (storeData.sections.length === 0) { el.innerHTML = `<div class="text-center py-8 text-gray-400"><p class="text-sm">Crea una sección primero.</p><button type="button" onclick="window.showAdminPage('sections')" class="mt-3 px-4 py-2 rounded-lg bg-gray-700 font-bold text-xs">Ir a Secciones</button></div>`; return; } if (adminSelectedSection >= storeData.sections.length) adminSelectedSection = 0; let sH = ''; storeData.sections.forEach((s, i) => { sH += `<option value="${i}" ${adminSelectedSection === i ? 'selected' : ''}>${s.name || ''}</option>`; }); const sec = storeData.sections[adminSelectedSection]; let pH = ''; if(sec && sec.products) { sec.products.forEach(p => { if(!p) return; pH += `<div class="bg-adminCard rounded-xl border border-gray-700 overflow-hidden"><img src="${p.image || 'https://picsum.photos/seed/default/400/400'}" class="w-full h-24 object-cover bg-sand/20"><div class="p-3"><h4 class="font-bold text-xs truncate">${p.name || ''}</h4><p class="text-fuchsia text-xs">${formatPrice(p.priceCUP || 0)}</p><p class="text-[10px] mt-1 ${(Number(p.quantity)||0) > 0 ? 'text-green-400' : 'text-red-400'}"><i class="fas fa-boxes-stacked mr-1"></i>Stock: ${Number(p.quantity)||0}</p><div class="flex gap-2 mt-2"><button type="button" onclick="window.renderProductForm(${sec.id}, ${p.id})" class="flex-1 py-1.5 rounded-lg bg-gray-700 font-bold text-[11px]">Editar</button><button type="button" onclick="window.deleteProduct(${sec.id}, ${p.id})" class="flex-1 py-1.5 rounded-lg bg-red-900/30 text-red-400 font-bold text-[11px]">Eliminar</button></div></div></div>`; }); } el.innerHTML = `<div class="flex flex-col gap-3 mb-4"><select id="adminSectionSelect" class="admin-input text-sm">${sH}</select><button type="button" onclick="window.renderProductForm(${sec.id}, null)" class="w-full px-4 py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)"><i class="fas fa-plus mr-2"></i>Nuevo Producto</button></div><div class="grid grid-cols-2 gap-3">${pH}</div>`; setTimeout(() => { const sel = document.getElementById('adminSectionSelect'); if(sel) sel.onchange = function() { adminSelectedSection = parseInt(this.value); renderProductList(document.getElementById('adminContent')); }; }, 50); }
-
-    // FORMULARIO DE PRODUCTO ACTUALIZADO: USA URL EN VEZ DE SUBIR ARCHIVO
-    window.renderProductForm = function(secId, prodId) {
-      editingProductSectionId = secId; editingProductId = prodId;
-      const s = storeData.sections.find(x => x.id === Number(secId));
-      const p = prodId ? s?.products.find(x => x.id === Number(prodId)) : null;
-      const qty = p ? (Number(p.quantity) || 0) : 10; const priceCUP = p ? (Number(p.priceCUP) || 0) : 0;
-      const rate = Number(storeData.exchangeRate) || 300;
+    function showAdminPage(pg) {
+      currentAdminPage = pg; editingSectionId = null; editingProductId = null;
+      document.querySelectorAll('.admin-tab').forEach(b => { const isA = b.dataset.page === pg; b.classList.toggle('bg-yolk/20', isA); b.classList.toggle('text-yolk', isA); b.classList.toggle('text-gray-400', !isA); });
       const c = document.getElementById('adminContent');
-      c.innerHTML = `
-        <button type="button" onclick="window.showAdminPage('products')" class="text-drift hover:text-white mb-4 inline-flex items-center gap-2 text-sm"><i class="fas fa-arrow-left"></i> Volver</button>
-        <h3 class="font-display text-lg font-bold mb-4">${p ? 'Editar' : 'Nuevo'} Producto <span class="text-xs text-gray-400 font-normal">(${s.name || ''})</span></h3>
-        <div class="space-y-3">
-          <div><label class="block text-xs text-gray-400 mb-1">Nombre *</label><input id="pf_name" type="text" value="${p ? p.name : ''}" class="admin-input"></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-gray-400 mb-1">Precio (CUP) *</label>
-              <input id="pf_priceCUP" type="number" min="0" step="1" value="${priceCUP}" class="admin-input" oninput="document.getElementById('pf_usd_preview').textContent = (Number(this.value)/${rate}).toFixed(2)">
-              <p class="text-[10px] text-gray-500 mt-1">≈ <span id="pf_usd_preview">${getUSD(priceCUP).toFixed(2)}</span> USD</p>
-            </div>
-            <div><label class="block text-xs text-gray-400 mb-1">Stock *</label><input id="pf_quantity" type="number" min="0" value="${qty}" class="admin-input"></div>
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1"><i class="fas fa-link mr-1"></i> URL de la Imagen *</label>
-            <input id="pf_image_url" type="url" value="${p ? p.image : ''}" placeholder="https://ejemplo.com/foto.jpg" class="admin-input">
-            <p class="text-[9px] text-gray-500 mt-1">Usa URLs de Imgur, Postimages, etc. Esto evita que la base de datos se llene y borre los datos.</p>
-            <img id="pf_img_preview" src="${p ? p.image : ''}" class="w-full h-28 object-contain rounded-xl mt-2 bg-sand/20 ${p && p.image ? '' : 'hidden'}">
-          </div>
-          <button type="button" id="saveProductBtn" onclick="window.saveProduct()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)">Guardar Producto</button>
-        </div>`;
-      // Actualizar vista previa al pegar URL
-      setTimeout(() => { const urlInput = document.getElementById('pf_image_url'); if(urlInput) urlInput.oninput = (e) => { const val = e.target.value; if(val) { document.getElementById('pf_img_preview').src = val; document.getElementById('pf_img_preview').classList.remove('hidden'); } else { document.getElementById('pf_img_preview').classList.add('hidden'); } }; }, 50);
-    };
-
-    window.saveProduct = async function() {
-      const name = document.getElementById('pf_name').value.trim(); 
-      const priceCUP = Number(document.getElementById('pf_priceCUP').value) || 0; 
-      const quantity = Number(document.getElementById('pf_quantity').value) || 0;
-      let imageUrl = document.getElementById('pf_image_url').value.trim(); 
-      const btn = document.getElementById('saveProductBtn');
-      
-      if (!name) { showToast('Nombre obligatorio', 'error'); return; }
-      if (priceCUP <= 0) { showToast('Precio CUP > 0', 'error'); return; }
-      if (!imageUrl) { imageUrl = `https://picsum.photos/seed/${Date.now()}/400/400`; }
-      
-      const s = storeData.sections.find(x => x.id === Number(editingProductSectionId)); if (!s) return; if (!s.products) s.products = [];
-      if (editingProductId) { const p = s.products.find(x => x.id === Number(editingProductId)); if (p) { p.name = name; p.priceCUP = priceCUP; p.quantity = quantity; p.image = imageUrl; } } 
-      else { s.products.push({ id: Date.now(), name, priceCUP, quantity, image: imageUrl }); }
-      
-      btn.disabled = true; btn.innerHTML = 'Guardando...';
-      try { await saveData(); showToast('¡Producto guardado en la nube!', 'success'); window.showAdminPage('products'); renderCatalog(); } catch (e) { btn.disabled = false; btn.innerHTML = 'Guardar Producto'; }
-    };
-
-    window.deleteProduct = async function(secId, prodId) { if (!confirm('¿Eliminar?')) return; const s = storeData.sections.find(x => x.id === Number(secId)); if (s && s.products) { s.products = s.products.filter(x => x.id !== Number(prodId)); try { await saveData(); showToast('Eliminado', 'success'); renderProductList(document.getElementById('adminContent')); renderCatalog(); } catch(e) {} } };
-
-    function renderAppearance(el) { el.innerHTML = `<div class="space-y-4"><div class="bg-adminCard rounded-xl p-4 border border-gray-700 space-y-4"><h3 class="font-display text-sm font-bold text-fuchsia">Textos y Colores</h3><div><label class="block text-xs text-gray-400 mb-1">Nombre</label><input id="ap_storeName" type="text" value="${storeData.storeName || ''}" class="admin-input"></div><div><label class="block text-xs text-gray-400 mb-1">Título Hero</label><input id="ap_heroTitle" type="text" value="${storeData.heroTitle || ''}" class="admin-input"></div><div><label class="block text-xs text-gray-400 mb-1">Subtítulo Hero</label><input id="ap_heroSubtitle" type="text" value="${storeData.heroSubtitle || ''}" class="admin-input"></div><div class="grid grid-cols-3 gap-3"><div><label class="block text-xs text-gray-400 mb-1">Fondo</label><input id="ap_bgColor" type="color" value="${storeData.backgroundColor || '#FFFAFC'}" class="w-full h-10 rounded cursor-pointer bg-transparent border-0"></div><div><label class="block text-xs text-gray-400 mb-1">Texto</label><input id="ap_headerColor" type="color" value="${storeData.headerColor || '#1A1A1A'}" class="w-full h-10 rounded cursor-pointer bg-transparent border-0"></div><div><label class="block text-xs text-gray-400 mb-1">Acento</label><input id="ap_accentColor" type="color" value="${storeData.accentColor || '#E91E8C'}" class="w-full h-10 rounded cursor-pointer bg-transparent border-0"></div></div></div><button type="button" onclick="window.saveAppearance()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)">Guardar</button></div>`; }
-    window.saveAppearance = async function() { storeData.storeName = document.getElementById('ap_storeName').value.trim(); storeData.heroTitle = document.getElementById('ap_heroTitle').value.trim(); storeData.heroSubtitle = document.getElementById('ap_heroSubtitle').value.trim(); storeData.backgroundColor = document.getElementById('ap_bgColor').value; storeData.headerColor = document.getElementById('ap_headerColor').value; storeData.accentColor = document.getElementById('ap_accentColor').value; try { await saveData(); showToast('Aspecto guardado', 'success'); } catch(e) {} };
-
-    function renderSettings(el) { 
-      let zonesHtml = ''; (storeData.shippingZones || []).forEach((z, i) => { zonesHtml += `<div class="flex items-center gap-2 bg-gray-800 p-2 rounded-lg"><span class="flex-1 text-sm font-medium">${z.name || ''}</span><span class="text-fuchsia font-bold text-sm">${Math.round(z.cost || 0).toLocaleString()} CUP</span><button type="button" onclick="window.removeShippingZone(${i})" class="text-red-400 text-xs p-1 hover:text-red-300"><i class="fas fa-trash"></i></button></div>`; });
-      el.innerHTML = `<div class="space-y-4"><div class="bg-adminCard rounded-xl p-4 border border-gray-700 space-y-4"><h3 class="font-display text-sm font-bold text-fuchsia">Ventas y WhatsApp</h3><div><label class="block text-xs text-gray-400 mb-1">Número de WhatsApp</label><input id="st_whatsapp" type="text" value="${storeData.whatsappNumber || ''}" class="admin-input"></div><div><label class="block text-xs text-gray-400 mb-1">1 USD = ? CUP</label><input id="st_exchange" type="number" value="${storeData.exchangeRate || 300}" class="admin-input"></div></div><div class="bg-adminCard rounded-xl p-4 border border-gray-700 space-y-4"><h3 class="font-display text-sm font-bold text-fuchsia"><i class="fas fa-truck mr-2"></i>Municipios y Mensajería</h3><div id="shippingZonesList" class="space-y-2 max-h-40 overflow-y-auto admin-scroll">${zonesHtml || '<p class="text-xs text-gray-500 text-center py-2">No hay municipios configurados</p>'}</div><div class="flex gap-2"><input id="sz_name" type="text" placeholder="Municipio" class="admin-input flex-1 text-sm py-2"><input id="sz_cost" type="number" placeholder="Costo CUP" class="admin-input w-28 text-sm py-2"></div><button type="button" onclick="window.addShippingZone()" class="w-full py-2 rounded-lg bg-gray-700 font-bold text-xs active:scale-95 transition">Añadir Municipio</button></div><button type="button" onclick="window.saveSettings()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:var(--accent)">Guardar Configuración</button></div>`; 
+      if (pg === 'dashboard') renderDashboard(c); else if (pg === 'sections') renderSectionList(c); else if (pg === 'products') renderProductList(c); else if (pg === 'settings') renderSettings(c);
     }
-    window.addShippingZone = async function() { const name = document.getElementById('sz_name').value.trim(); const cost = Number(document.getElementById('sz_cost').value) || 0; if (!name) { showToast('Escribe el nombre del municipio', 'error'); return; } storeData.shippingZones.push({ name, cost }); try { await saveData(); showToast('Municipio añadido', 'success'); renderSettings(document.getElementById('adminContent')); } catch(e) {} }
-    window.removeShippingZone = async function(index) { storeData.shippingZones.splice(index, 1); try { await saveData(); showToast('Municipio eliminado', 'success'); renderSettings(document.getElementById('adminContent')); } catch(e) {} }
-    window.saveSettings = async function() { storeData.whatsappNumber = document.getElementById('st_whatsapp').value.trim(); storeData.exchangeRate = Number(document.getElementById('st_exchange').value) || 300; try { await saveData(); showToast('Configuración guardada', 'success'); renderCatalog(); } catch(e) {} };
 
-    window.closeAllModals = closeAllModals; window.switchScreen = switchScreen; window.handleAdminClick = handleAdminClick;
+    function renderDashboard(el) { let t = 0; storeData.sections.forEach(s => t += (s.products || []).length); el.innerHTML = `<div class="grid grid-cols-2 gap-4"><div class="bg-dark-light rounded-lg p-5 border border-gray-800"><p class="text-gray-500 text-xs">Secciones</p><p class="text-3xl font-bold text-yolk">${storeData.sections.length}</p></div><div class="bg-dark-light rounded-lg p-5 border border-gray-800"><p class="text-gray-500 text-xs">Productos</p><p class="text-3xl font-bold text-white">${t}</p></div></div>`; }
 
+    function renderSectionList(el) { let l = ''; storeData.sections.forEach(s => { l += `<div class="bg-dark-light rounded-lg p-4 border border-gray-800 flex justify-between items-center"><div class="flex items-center gap-3"><i class="${s.icon || 'fas fa-utensils'} text-yolk"></i><span class="font-bold text-sm text-white">${s.name}</span></div><div class="flex gap-2"><button onclick="renderSectionForm(${s.id})" class="px-3 py-1.5 rounded bg-gray-700 text-xs font-bold text-white">Editar</button><button onclick="deleteSection(${s.id})" class="px-3 py-1.5 rounded bg-red-900/30 text-red-400 text-xs font-bold">X</button></div></div>`; }); el.innerHTML = `<button onclick="renderSectionForm(null)" class="w-full mb-4 px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i>Nueva Sección</button><div class="space-y-3">${l}</div>`; }
+    
+    window.renderSectionForm = function(id) { editingSectionId = id; const s = id ? storeData.sections.find(x => x.id === Number(id)) : null; document.getElementById('adminContent').innerHTML = `<button onclick="showAdminPage('sections')" class="text-gray-400 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button><h3 class="font-display text-lg text-yolk mb-4">${s ? 'EDITAR' : 'NUEVA'} SECCIÓN</h3><div class="space-y-3"><div><label class="text-xs text-gray-500">Nombre *</label><input id="sf_name" type="text" value="${s ? s.name : ''}" class="admin-input mt-1"></div><div><label class="text-xs text-gray-500">Icono (ej: fas fa-burger)</label><input id="sf_icon" type="text" value="${s ? s.icon : 'fas fa-utensils'}" class="admin-input mt-1"></div><button onclick="saveSection()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR</button></div>`; };
+    window.saveSection = async function() { const name = document.getElementById('sf_name').value.trim(), icon = document.getElementById('sf_icon').value.trim() || 'fas fa-utensils'; if (!name) return showToast('Nombre obligatorio', 'error'); if (editingSectionId) await supabaseClient.from('sections').update({ name, icon }).eq('id', editingSectionId); else await supabaseClient.from('sections').insert({ name, icon }); showToast('Guardado'); await fetchStoreData(); showAdminPage('sections'); };
+    window.deleteSection = async function(id) { if (!confirm('¿Eliminar sección y sus productos?')) return; await supabaseClient.from('sections').delete().eq('id', id); showToast('Eliminada'); await fetchStoreData(); showAdminPage('sections'); };
+
+    function renderProductList(el) {
+      if (storeData.sections.length === 0) { el.innerHTML = `<p class="text-gray-500 text-center py-8">Crea una sección primero.</p>`; return; }
+      if (adminSelectedSection >= storeData.sections.length) adminSelectedSection = 0;
+      let sH = ''; storeData.sections.forEach((s, i) => { sH += `<option value="${i}" ${adminSelectedSection === i ? 'selected' : ''}>${s.name}</option>`; });
+      const sec = storeData.sections[adminSelectedSection]; let pH = '';
+      if(sec && sec.products) { sec.products.forEach(p => { pH += `<div class="bg-dark-light rounded-lg border border-gray-800 overflow-hidden"><img src="${p.image_url || 'https://picsum.photos/400/400'}" class="w-full h-24 object-cover"><div class="p-3"><h4 class="font-bold text-xs text-white truncate">${p.name}</h4><p class="text-yolk text-xs">${formatPrice(p.priceCUP)}</p><p class="text-[10px] mt-1 text-gray-500">Stock: ${Number(p.quantity)||0}</p><div class="flex gap-2 mt-2"><button onclick="renderProductForm(${sec.id}, ${p.id})" class="flex-1 py-1.5 rounded bg-gray-700 font-bold text-[11px] text-white">Editar</button><button onclick="deleteProduct(${p.id})" class="flex-1 py-1.5 rounded bg-red-900/30 text-red-400 font-bold text-[11px]">X</button></div></div></div>`; }); }
+      el.innerHTML = `<div class="flex flex-col gap-3 mb-4"><select id="adminSectionSelect" class="admin-input text-sm">${sH}</select><button onclick="renderProductForm(${sec.id}, null)" class="w-full px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i>NUEVO PRODUCTO</button></div><div class="grid grid-cols-2 gap-3">${pH}</div>`;
+      setTimeout(() => { const sel = document.getElementById('adminSectionSelect'); if(sel) sel.onchange = function() { adminSelectedSection = parseInt(this.value); renderProductList(document.getElementById('adminContent')); }; }, 50);
+    }
+
+    window.renderProductForm = function(secId, prodId) {
+      editingProductSectionId = secId; editingProductId = prodId; const s = storeData.sections.find(x => x.id === Number(secId)); const p = prodId ? s?.products.find(x => x.id === Number(prodId)) : null;
+      document.getElementById('adminContent').innerHTML = `<button onclick="showAdminPage('products')" class="text-gray-400 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button><h3 class="font-display text-lg text-yolk mb-4">${p ? 'EDITAR' : 'NUEVO'} PRODUCTO</h3><div class="space-y-3"><div><label class="text-xs text-gray-500">Nombre *</label><input id="pf_name" type="text" value="${p ? p.name : ''}" class="admin-input mt-1"></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">Precio (CUP) *</label><input id="pf_priceCUP" type="number" value="${p ? p.priceCUP : 0}" class="admin-input mt-1"></div><div><label class="text-xs text-gray-500">Stock *</label><input id="pf_quantity" type="number" value="${p ? p.quantity : 10}" class="admin-input mt-1"></div></div><div><label class="text-xs text-gray-500">Imagen</label><input type="file" id="pf_image_file" accept="image/*" class="admin-input mt-1 text-xs">${p && p.image_url ? `<img src="${p.image_url}" class="w-full h-28 object-contain rounded mt-2 bg-black">` : ''}</div><button onclick="saveProduct()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR PRODUCTO</button></div>`;
+    };
+    window.saveProduct = async function() {
+      const name = document.getElementById('pf_name').value.trim(), priceCUP = Number(document.getElementById('pf_priceCUP').value) || 0, quantity = Number(document.getElementById('pf_quantity').value) || 0, file = document.getElementById('pf_image_file').files[0];
+      if (!name || priceCUP <= 0) return showToast('Completa nombre y precio', 'error');
+      let imageUrl = editingProductId ? (storeData.sections.flatMap(s=>s.products).find(p=>p.id==editingProductId)?.image_url || '') : '';
+      if (file) { imageUrl = await uploadImage(file); if(!imageUrl) return; } if (!imageUrl) imageUrl = `https://picsum.photos/seed/${Date.now()}/400/400`;
+      const payload = { name, priceCUP, quantity, image_url: imageUrl, section_id: Number(editingProductSectionId) };
+      if (editingProductId) await supabaseClient.from('products').update(payload).eq('id', editingProductId); else await supabaseClient.from('products').insert(payload);
+      showToast('¡Producto guardado!'); await fetchStoreData(); showAdminPage('products');
+    };
+    window.deleteProduct = async function(id) { if (!confirm('¿Eliminar?')) return; await supabaseClient.from('products').delete().eq('id', id); showToast('Eliminado'); await fetchStoreData(); renderProductList(document.getElementById('adminContent')); };
+
+    function renderSettings(el) {
+      let zonesHtml = ''; (storeData.shippingZones || []).forEach((z, i) => { zonesHtml += `<div class="flex items-center justify-between bg-black p-2 rounded border border-gray-800"><span class="text-sm text-white">${z.name}</span><span class="text-yolk font-bold text-sm">${Math.round(z.cost)} CUP</span><button onclick="removeShippingZone(${i})" class="text-red-400 ml-2"><i class="fas fa-trash text-xs"></i></button></div>`; });
+      el.innerHTML = `<div class="space-y-4"><div class="bg-dark-light rounded-lg p-4 border border-gray-800 space-y-3"><h3 class="font-display text-sm text-yolk">VENTAS</h3><div><label class="text-xs text-gray-500">WhatsApp</label><input id="st_whatsapp" type="text" value="${storeData.whatsappNumber || ''}" class="admin-input mt-1"></div><div><label class="text-xs text-gray-500">Tasa (1 USD = ? CUP)</label><input id="st_exchange" type="number" value="${storeData.exchangeRate || 300}" class="admin-input mt-1"></div></div><div class="bg-dark-light rounded-lg p-4 border border-gray-800 space-y-3"><h3 class="font-display text-sm text-yolk">MENSAJERÍA</h3><div id="shippingZonesList" class="space-y-2 max-h-40 overflow-y-auto">${zonesHtml || '<p class="text-xs text-gray-600 text-center">Sin municipios</p>'}</div><div class="flex gap-2"><input id="sz_name" type="text" placeholder="Municipio" class="admin-input flex-1 text-sm py-2"><input id="sz_cost" type="number" placeholder="Costo CUP" class="admin-input w-28 text-sm py-2"></div><button onclick="addShippingZone()" class="w-full py-2 rounded bg-gray-700 font-bold text-xs text-white">AÑADIR</button></div><button onclick="saveSettings()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR CONFIGURACIÓN</button></div>`;
+    }
+    window.addShippingZone = async function() { const name = document.getElementById('sz_name').value.trim(), cost = Number(document.getElementById('sz_cost').value) || 0; if (!name) return; storeData.shippingZones.push({ name, cost }); await supabaseClient.from('store_settings').update({ shippingZones: storeData.shippingZones }).eq('id', 1); showToast('Municipio añadido'); await fetchStoreData(); renderSettings(document.getElementById('adminContent')); };
+    window.removeShippingZone = async function(i) { storeData.shippingZones.splice(i, 1); await supabaseClient.from('store_settings').update({ shippingZones: storeData.shippingZones }).eq('id', 1); showToast('Eliminado'); await fetchStoreData(); renderSettings(document.getElementById('adminContent')); };
+    window.saveSettings = async function() { storeData.whatsappNumber = document.getElementById('st_whatsapp').value.trim(); storeData.exchangeRate = Number(document.getElementById('st_exchange').value) || 300; await supabaseClient.from('store_settings').update({ whatsappNumber: storeData.whatsappNumber, exchangeRate: storeData.exchangeRate }).eq('id', 1); showToast 'Configuración guardada'); await fetchStoreData(); };
+
+    // Init
     document.addEventListener('DOMContentLoaded', () => {
-      initAuth(); initDatabase();
+      checkAuth(); fetchStoreData();
       document.getElementById('loginBtn').addEventListener('click', handleLogin);
       document.getElementById('adminLogout').addEventListener('click', handleLogout);
       document.getElementById('sendWhatsapp').addEventListener('click', sendWhatsappOrder);
       document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', function(e) { if (e.target === o) closeAllModals(); }); });
-      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.closeLightbox(); });
     });
   </script>
 </body>
-  </html>
+      </html>
