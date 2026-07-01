@@ -3,124 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Peaky Pan — Tienda Minorista 24 Horas</title>
-  
+  <title>Peaky Pan — Tienda 24 Horas</title>
   <script>
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
-      if(e.keyCode == 123) return false;
-      if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-      if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-      if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+      if(e.keyCode==123)return false;
+      if(e.ctrlKey&&e.shiftKey&&e.keyCode=='I'.charCodeAt(0))return false;
+      if(e.ctrlKey&&e.shiftKey&&e.keyCode=='J'.charCodeAt(0))return false;
+      if(e.ctrlKey&&e.keyCode=='U'.charCodeAt(0))return false;
     }
   </script>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { dark: { DEFAULT: '#000000', card: '#111111', light: '#222222' }, yolk: { DEFAULT: '#FFD700', hover: '#FFC107', soft: 'rgba(255, 215, 0, 0.1)' } },
-          fontFamily: { display: ['Oswald', 'sans-serif'], body: ['Inter', 'sans-serif'] }
-        }
-      }
-    }
+    tailwind.config={theme:{extend:{colors:{dark:{DEFAULT:'#000',card:'#111',light:'#222'},yolk:{DEFAULT:'#FFD700',hover:'#FFC107'}},fontFamily:{display:['Oswald','sans-serif'],body:['Inter','sans-serif']}}}}
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root { --bg: #000000; --fg: #FFFFFF; --accent: #FFD700; --card: #111111; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--fg); overflow-x: hidden; }
-    .font-display { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
-    
-    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1050; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .sidebar-overlay.active { opacity: 1; pointer-events: all; }
-    .sidebar-panel { position: fixed; top: 0; left: 0; bottom: 0; width: 300px; background: #050505; z-index: 1060; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); border-right: 2px solid var(--accent); display: flex; flex-direction: column; }
-    .sidebar-panel.active { transform: translateX(0); }
-    
-    .product-card { background: var(--card); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: all 0.2s; }
-    .product-card:active { transform: scale(0.97); border-color: var(--accent); }
-    .featured-card { min-width: 280px; height: 350px; position: relative; border-radius: 16px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 25px rgba(255, 215, 0, 0.2); flex-shrink: 0; }
-    
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); border-top: 1px solid #222; z-index: 900; padding-bottom: env(safe-area-inset-bottom); display: flex; }
-    .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #666; padding: 12px 0; background: none; border: none; cursor: pointer; flex: 1; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
-    .bottom-nav button.active { color: var(--accent); }
-    .bottom-nav button:active { color: var(--accent); }
-    
-    .modal-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,0.9); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .modal-overlay.visible { opacity: 1; pointer-events: all; }
-    .modal-box { transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); width: 100%; max-height: 95vh; overflow-y: auto; background: #0a0a0a; border-top: 2px solid var(--accent); }
-    .modal-overlay.visible .modal-box { transform: translateY(0); }
-    
-    .admin-input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; font-size: 15px; font-family: 'Inter', sans-serif; background: #1a1a1a; color: #fff; }
-    .admin-input:focus { outline: none; border-color: var(--accent); }
-    .badge-cart { position: absolute; top: 5px; right: calc(50% - 15px); background: var(--accent); color: #000; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .tabs-scroll { overflow-x: auto; scrollbar-width: none; }
-    .tabs-scroll::-webkit-scrollbar { display: none; }
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120%); background: var(--accent); color: #000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 2000; transition: transform 0.4s; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    .logo-container { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 200px; }
-    .logo-text-fallback { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 0 20px; }
-    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0 16px; }
-
-    .conn-warning { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; padding: 10px 16px; border-radius: 8px; font-size: 13px; text-align: center; margin: 12px 16px; display: none; }
-    .conn-warning.show { display: block; }
+    :root{--bg:#000;--fg:#fff;--accent:#FFD700;--card:#111}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);overflow-x:hidden}
+    .font-display{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.05em}
+    .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1050;opacity:0;pointer-events:none;transition:opacity .3s}
+    .sidebar-overlay.active{opacity:1;pointer-events:all}
+    .sidebar-panel{position:fixed;top:0;left:0;bottom:0;width:300px;background:#050505;z-index:1060;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-right:2px solid var(--accent);display:flex;flex-direction:column}
+    .sidebar-panel.active{transform:translateX(0)}
+    .product-card{background:var(--card);border:1px solid #222;border-radius:12px;overflow:hidden;transition:all .2s}
+    .product-card:active{transform:scale(.97);border-color:var(--accent)}
+    .featured-card{min-width:280px;height:350px;position:relative;border-radius:16px;overflow:hidden;border:2px solid var(--accent);box-shadow:0 0 25px rgba(255,215,0,.2);flex-shrink:0}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.95);backdrop-filter:blur(10px);border-top:1px solid #222;z-index:900;padding-bottom:env(safe-area-inset-bottom);display:flex}
+    .bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#666;padding:12px 0;background:none;border:none;cursor:pointer;flex:1;transition:color .2s;-webkit-tap-highlight-color:transparent}
+    .bottom-nav button.active{color:var(--accent)}
+    .bottom-nav button:active{color:var(--accent)}
+    .modal-overlay{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.9);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+    .modal-overlay.visible{opacity:1;pointer-events:all}
+    .modal-box{transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);width:100%;max-height:95vh;overflow-y:auto;background:#0a0a0a;border-top:2px solid var(--accent)}
+    .modal-overlay.visible .modal-box{transform:translateY(0)}
+    .admin-input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid #333;font-size:15px;font-family:'Inter',sans-serif;background:#1a1a1a;color:#fff}
+    .admin-input:focus{outline:none;border-color:var(--accent)}
+    .badge-cart{position:absolute;top:5px;right:calc(50% - 15px);background:var(--accent);color:#000;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:bold}
+    .tabs-scroll{overflow-x:auto;scrollbar-width:none}.tabs-scroll::-webkit-scrollbar{display:none}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-120%);background:var(--accent);color:#000;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:bold;z-index:2000;transition:transform .4s;box-shadow:0 4px 15px rgba(255,215,0,.4)}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .logo-container{position:relative;width:100%;display:flex;align-items:center;justify-content:center;min-height:200px}
+    .logo-fallback{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.08em;text-align:center;padding:0 20px}
+    .logo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:0 16px}
   </style>
 </head>
 <body>
 
-  <div id="connWarning" class="conn-warning">
-    <i class="fas fa-exclamation-triangle mr-1"></i>
-    No se pudo conectar a la base de datos. Revisa tu conexión a internet.
-  </div>
-
-  <!-- SIDEBAR LATERAL -->
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div id="sidebarPanel" class="sidebar-panel">
-    <div class="p-6 border-b border-gray-800 text-center">
-      <h2 class="font-display text-2xl text-yolk">Menú</h2>
-    </div>
+    <div class="p-6 border-b border-gray-800 text-center"><h2 class="font-display text-2xl text-yolk">Menú</h2></div>
     <div class="flex-1 overflow-y-auto p-4 space-y-2" id="sidebarMenu"></div>
     <div class="p-4 border-t border-gray-800 space-y-2" id="sidebarAdmin"></div>
   </div>
 
-  <!-- HEADER CON LOGO -->
-  <header class="relative bg-black flex items-center justify-center py-10 border-b border-gray-900">
+  <header class="bg-black flex items-center justify-center py-10 border-b border-gray-900">
     <div class="logo-container">
-      <div class="logo-text-fallback">
+      <div class="logo-fallback">
         <h1 class="text-5xl font-bold text-yolk drop-shadow-[0_0_30px_rgba(255,215,0,0.4)]">PEAKY PAN</h1>
         <p class="text-gray-400 text-sm mt-2 tracking-widest">Tienda Minorista 24 Horas</p>
       </div>
-      <img
-        id="logoImg"
-        src="https://raw.githubusercontent.com/MJB1207/Peaky-Pan-24hrs/b48779d1989d162371d33745fedc090328111a22/1782923872639.png"
-        alt="Peaky Pan Logo"
-        class="logo-img"
-        crossorigin="anonymous"
-      >
+      <img id="logoImg" src="https://raw.githubusercontent.com/MJB1207/Peaky-Pan-24hrs/b48779d1989d162371d33745fedc090328111a22/1782923872639.png" alt="Logo" class="logo-img" crossorigin="anonymous">
     </div>
   </header>
 
-  <!-- DESTACADOS -->
-  <section id="destacados" class="py-8 px-4 bg-black">
+  <section class="py-8 px-4 bg-black">
     <div class="flex justify-between items-center mb-6 px-2">
       <h2 class="font-display text-3xl text-yolk flex items-center gap-3"><i class="fas fa-star"></i> DESTACADOS</h2>
     </div>
     <div id="featuredScroll" class="flex gap-4 overflow-x-auto pb-4 tabs-scroll snap-x snap-mandatory"></div>
   </section>
 
-  <!-- CATÁLOGO -->
-  <main id="catalogSection" class="pb-28 px-4 bg-black min-h-screen">
+  <main class="pb-28 px-4 bg-black min-h-screen">
     <div class="max-w-lg mx-auto pt-6">
       <h2 class="font-display text-2xl text-white mb-6 border-b border-gray-800 pb-2" id="catalogTitle">TODOS LOS PRODUCTOS</h2>
       <div id="productGrid" class="grid grid-cols-2 gap-3"></div>
     </div>
   </main>
 
-  <!-- MODAL BILLAR -->
   <div id="billarModal" class="modal-overlay">
     <div class="modal-box p-6">
       <div class="flex justify-between items-center mb-6">
@@ -139,7 +102,6 @@
     </div>
   </div>
 
-  <!-- MODAL CARRITO -->
   <div id="cartModal" class="modal-overlay">
     <div class="modal-box p-6">
       <div class="flex justify-between items-center mb-6">
@@ -154,14 +116,13 @@
         <input type="text" id="checkAddress" placeholder="Dirección de entrega" class="admin-input">
         <select id="checkMunicipality" class="admin-input"><option value="">Selecciona el municipio</option></select>
         <select id="checkPayment" class="admin-input"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option></select>
-        <textarea id="checkNotes" rows="2" placeholder="Notas adicionales (opcional)" class="admin-input" style="resize:none;"></textarea>
+        <textarea id="checkNotes" rows="2" placeholder="Notas adicionales (opcional)" class="admin-input" style="resize:none"></textarea>
         <div id="cartTotalSummary" class="text-right pt-2 text-white"></div>
         <button type="button" id="sendWhatsapp" class="w-full py-3 rounded-lg font-bold text-black text-base bg-yolk active:scale-95 transition flex items-center justify-center gap-2 mt-2"><i class="fab fa-whatsapp text-xl"></i> ENVIAR PEDIDO</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL LOGIN -->
   <div id="loginModal" class="modal-overlay">
     <div class="modal-box p-8">
       <h3 class="font-display text-2xl text-yolk mb-4 text-center">ADMIN ACCESS</h3>
@@ -175,9 +136,8 @@
     </div>
   </div>
 
-  <!-- MODAL ADMIN -->
   <div id="adminModal" class="modal-overlay">
-    <div class="modal-box bg-black text-white flex flex-col" style="height:100vh; max-height:100vh; border-radius:0; border-top:none;">
+    <div class="modal-box bg-black text-white flex flex-col" style="height:100vh;max-height:100vh;border-radius:0;border-top:none">
       <header class="p-4 border-b border-gray-800 flex justify-between items-center shrink-0">
         <h2 class="font-display text-lg text-yolk">PANEL ADMIN</h2>
         <button onclick="closeAllModals()" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
@@ -197,412 +157,139 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- BARRA INFERIOR -->
   <nav class="bottom-nav">
     <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="active"><i class="fas fa-home text-xl"></i><span>Inicio</span></button>
-    <button onclick="toggleSidebar()" id="navMenu"><i class="fas fa-bars text-xl"></i><span>Menú</span></button>
-    <button onclick="openCart()" id="navCart" class="relative"><i class="fas fa-shopping-bag text-xl"></i><span id="cartBadge" class="badge-cart hidden">0</span><span>Pedido</span></button>
+    <button onclick="toggleSidebar()"><i class="fas fa-bars text-xl"></i><span>Menú</span></button>
+    <button onclick="openCart()" class="relative"><i class="fas fa-shopping-bag text-xl"></i><span id="cartBadge" class="badge-cart hidden">0</span><span>Pedido</span></button>
   </nav>
 
-  <script>
-    /* =============================================
-       CONFIGURACIÓN SUPABASE — CLAVE REAL INCLUIDA
-       ============================================= */
-    var SUPABASE_URL = 'https://qtbhkurhxgdfxlnzswbw.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0YmhrdXJoeGdkZnhsbnpzd2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4OTMzMDUsImV4cCI6MjA5ODQ2OTMwNX0.RGVxA4g3BrUBFEgYAiCJuzLQHIoRF6ALov9r7wZtPrA';
-    var supabaseClient = null;
+<script>
+var SUPABASE_URL='https://qtbhkurhxgdfxlnzswbw.supabase.co';
+var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0YmhrdXJoeGdkZnhsbnpzd2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4OTMzMDUsImV4cCI6MjA5ODQ2OTMwNX0.RGVxA4g3BrUBFEgYAiCJuzLQHIoRF6ALov9r7wZtPrA';
+var db=null;
+try{if(window.supabase&&window.supabase.createClient)db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
 
-    try {
-      if (window.supabase && window.supabase.createClient) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase conectado correctamente.');
-      }
-    } catch(e) {
-      console.error('Error creando cliente Supabase:', e);
-    }
+var D={sections:[],shippingZones:[],exchangeRate:300,whatsappNumber:''};
+var logged=false,adminPg='dashboard',secTab=-1,admSec=0,cart=[],editSec=null,editProd=null,editProdSec=null;
 
-    /* =============================================
-       ESTADO GLOBAL
-       ============================================= */
-    var storeData = { sections: [], shippingZones: [], exchangeRate: 300, whatsappNumber: '' };
-    var isLoggedIn = false;
-    var currentAdminPage = 'dashboard';
-    var activeSectionTab = -1;
-    var adminSelectedSection = 0;
-    var cart = [];
-    var editingSectionId = null;
-    var editingProductId = null;
-    var editingProductSectionId = null;
+function sanitize(){if(!D.sections)D.sections=[];if(!D.shippingZones)D.shippingZones=[];D.exchangeRate=Number(D.exchangeRate)||300;for(var i=0;i<D.sections.length;i++){var s=D.sections[i];if(!s.products)s.products=[];s.id=Number(s.id);for(var j=0;j<s.products.length;j++){var p=s.products[j];p.id=Number(p.id);p.priceCUP=Number(p.priceCUP)||0;p.quantity=Number(p.quantity)||10;p.is_featured=p.is_featured===true}}}
 
-    /* =============================================
-       UTILIDADES
-       ============================================= */
-    function sanitizeData() {
-      if (!storeData.sections) storeData.sections = [];
-      if (!storeData.shippingZones) storeData.shippingZones = [];
-      storeData.exchangeRate = Number(storeData.exchangeRate) || 300;
-      for (var i = 0; i < storeData.sections.length; i++) {
-        var s = storeData.sections[i];
-        if (!s.products) s.products = [];
-        s.id = Number(s.id);
-        for (var j = 0; j < s.products.length; j++) {
-          var p = s.products[j];
-          p.id = Number(p.id);
-          p.priceCUP = Number(p.priceCUP) || 0;
-          p.quantity = Number(p.quantity) || 10;
-          p.is_featured = (p.is_featured === true);
-        }
-      }
-    }
+function usd(v){return Number(v)/(Number(D.exchangeRate)||300)}
+function fmtP(v){return'<span class="text-white font-bold">'+Math.round(Number(v)).toLocaleString()+' CUP</span> <span class="text-xs text-yolk">($'+usd(v).toFixed(2)+' USD)</span>'}
 
-    function getUSD(priceCUP) {
-      return Number(priceCUP) / (Number(storeData.exchangeRate) || 300);
-    }
+function allProds(){var a=[];for(var i=0;i<D.sections.length;i++){var ps=D.sections[i].products||[];for(var j=0;j<ps.length;j++)a.push(ps[j])}return a}
+function findProd(id){var a=allProds();for(var i=0;i<a.length;i++)if(a[i].id===Number(id))return a[i];return null}
 
-    function formatPrice(priceCUP) {
-      var cup = Math.round(Number(priceCUP));
-      var usd = getUSD(priceCUP).toFixed(2);
-      return '<span class="text-white font-bold">' + cup.toLocaleString() + ' CUP</span> <span class="text-xs text-yolk font-normal">($' + usd + ' USD)</span>';
-    }
+function toast(m,t){var e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.background=t==='error'?'#ef4444':'var(--accent)';e.classList.add('show');setTimeout(function(){e.classList.remove('show')},2500)}
+function openM(id){var e=document.getElementById(id);if(e){e.classList.add('visible');document.body.style.overflow='hidden'}}
+function closeAll(){var ms=document.querySelectorAll('.modal-overlay');for(var i=0;i<ms.length;i++)ms[i].classList.remove('visible');document.body.style.overflow=''}
+function toggleSidebar(){document.getElementById('sidebarOverlay').classList.toggle('active');document.getElementById('sidebarPanel').classList.toggle('active')}
+function filterSec(i){secTab=i;document.getElementById('catalogTitle').innerText=i===-1?'TODOS LOS PRODUCTOS':D.sections[i].name.toUpperCase();renderCat()}
 
-    function getAllProducts() {
-      var all = [];
-      for (var i = 0; i < storeData.sections.length; i++) {
-        var prods = storeData.sections[i].products || [];
-        for (var j = 0; j < prods.length; j++) { all.push(prods[j]); }
-      }
-      return all;
-    }
+(function(){var img=document.getElementById('logoImg');if(img){img.onload=function(){};img.onerror=function(){this.style.display='none'}}})();
 
-    function findProductById(pId) {
-      var all = getAllProducts();
-      for (var i = 0; i < all.length; i++) {
-        if (all[i].id === Number(pId)) return all[i];
-      }
-      return null;
-    }
+async function loadData(){
+  if(!db){sanitize();renderSide();renderFeat();renderCat();renderAdmSide();return}
+  try{
+    var sr=await db.from('peaky_settings').select('*').eq('id',1).single();
+    if(sr.data){var s=sr.data;D.whatsappNumber=s.whatsappNumber||'';D.exchangeRate=Number(s.exchangeRate)||300;if(s.shippingZones)D.shippingZones=typeof s.shippingZones==='string'?JSON.parse(s.shippingZones):s.shippingZones}
+    var secr=await db.from('peaky_sections').select('*').order('id',{ascending:true});
+    var pr=await db.from('peaky_products').select('*');
+    var secs=secr.data||[],prods=pr.data||[];
+    D.sections=[];
+    for(var i=0;i<secs.length;i++){var sc=secs[i];sc.products=[];for(var j=0;j<prods.length;j++)if(prods[j].section_id===sc.id)sc.products.push(prods[j]);D.sections.push(sc)}
+  }catch(e){console.error(e)}
+  sanitize();renderSide();renderFeat();renderCat();renderAdmSide();
+  if(document.getElementById('adminModal').classList.contains('visible'))showAdminPage(adminPg);
+}
 
-    function showToast(msg, type) {
-      var t = document.getElementById('toast');
-      if (!t) return;
-      t.textContent = msg;
-      t.style.background = (type === 'error') ? '#ef4444' : 'var(--accent)';
-      t.classList.add('show');
-      setTimeout(function() { t.classList.remove('show'); }, 2500);
-    }
+async function upImg(f){if(!f||!db)return null;var ext=f.name.split('.').pop();var fn=Date.now()+'_'+Math.random().toString(36).substr(7,6)+'.'+ext;var fp='productos/'+fn;var r=await db.storage.from('peaky_imagenes').upload(fp,f,{cacheControl:'3600',upsert:false});if(r.error){toast('Error subiendo imagen','error');return null}return db.storage.from('peaky_imagenes').getPublicUrl(fp).data.publicUrl}
 
-    function openModal(id) {
-      var el = document.getElementById(id);
-      if (el) { el.classList.add('visible'); document.body.style.overflow = 'hidden'; }
-    }
+function checkAuth(){if(!db)return;db.auth.onAuthStateChange(function(e,s){logged=!!s;renderAdmSide()})}
+async function doLogin(){if(!db)return toast('Sin conexión','error');try{await db.auth.signInWithPassword({email:document.getElementById('loginUser').value,password:document.getElementById('loginPass').value});closeAll();openM('adminModal');showAdminPage('dashboard');renderAdmSide();toast('Bienvenida al Panel','success')}catch(e){document.getElementById('loginError').classList.remove('hidden')}}
+async function doLogout(){if(db)await db.auth.signOut();closeAll();toast('Sesión cerrada')}
 
-    function closeAllModals() {
-      var modals = document.querySelectorAll('.modal-overlay');
-      for (var i = 0; i < modals.length; i++) { modals[i].classList.remove('visible'); }
-      document.body.style.overflow = '';
-    }
+function renderAdmSide(){var el=document.getElementById('sidebarAdmin');if(logged)el.innerHTML='<button onclick="toggleSidebar();openM(\'adminModal\');showAdminPage(\'dashboard\')" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk"><i class="fas fa-cog w-5"></i> Panel Admin</button>';else el.innerHTML='<button onclick="toggleSidebar();openM(\'loginModal\')" class="w-full text-left p-3 rounded-lg border border-gray-700 hover:border-yolk/50 transition font-medium flex items-center gap-3 text-gray-600 hover:text-yolk"><i class="fas fa-lock w-5"></i> Admin</button>'}
 
-    function toggleSidebar() {
-      document.getElementById('sidebarOverlay').classList.toggle('active');
-      document.getElementById('sidebarPanel').classList.toggle('active');
-    }
+function renderSide(){var m=document.getElementById('sidebarMenu'),h='<button onclick="filterSec(-1);toggleSidebar()" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk mb-2"><i class="fas fa-fire w-5"></i> Todos</button>';for(var i=0;i<D.sections.length;i++){var s=D.sections[i];h+='<button onclick="filterSec('+i+');toggleSidebar()" class="w-full text-left p-3 rounded-lg hover:bg-yolk/10 hover:text-yolk transition font-medium flex items-center gap-3 text-gray-500"><i class="'+(s.icon||'fas fa-utensils')+' w-5 text-yolk"></i> '+s.name+'</button>'}m.innerHTML=h}
 
-    function filterBySection(index) {
-      activeSectionTab = index;
-      var title = (index === -1) ? 'TODOS LOS PRODUCTOS' : storeData.sections[index].name.toUpperCase();
-      document.getElementById('catalogTitle').innerText = title;
-      renderCatalog();
-    }
+function renderFeat(){
+  var g=document.getElementById('featuredScroll'),r=Number(D.exchangeRate)||300;
+  var bu=document.getElementById('billarUsd');if(bu)bu.innerText='($'+(600/r).toFixed(2)+' USD)';
+  var h='<div class="featured-card snap-start relative bg-dark-card"><img src="https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover opacity-70" onerror="this.src=\'https://picsum.photos/600/400?grayscale\'"><div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div><div class="absolute bottom-0 left-0 right-0 p-4 border-t-2 border-yolk"><p class="text-xs text-yolk font-bold mb-1">SERVICIO EN LOCAL</p><h3 class="font-display text-2xl text-white leading-tight mb-2">BILLAR</h3><p class="text-sm text-white mb-3">600 CUP <span class="text-xs text-yolk">($'+(600/r).toFixed(2)+' USD)</span> / Hora</p><button onclick="openBillar()" class="w-full bg-yolk text-black py-2 rounded font-bold text-sm active:scale-95 transition">RESERVAR HORA</button></div></div>';
+  var ft=allProds().filter(function(p){return p.is_featured===true});
+  for(var i=0;i<ft.length;i++){var p=ft[i];h+='<div class="featured-card snap-start relative bg-dark-card"><img src="'+(p.image_url||'https://picsum.photos/400/400')+'" class="w-full h-full object-cover opacity-80"><div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div><div class="absolute bottom-0 left-0 right-0 p-4"><p class="text-xs text-yolk font-bold mb-1">OFERTA</p><h3 class="font-display text-xl text-white leading-tight mb-2">'+p.name+'</h3><div class="flex justify-between items-end"><div class="text-sm">'+fmtP(p.priceCUP)+'</div><button onclick="addCart('+p.id+')" class="bg-yolk text-black px-3 py-1 rounded font-bold text-xs active:scale-95 transition">PEDIR</button></div></div></div>'}
+  g.innerHTML=h;
+}
 
-    /* =============================================
-       LOGO
-       ============================================= */
-    (function() {
-      var img = document.getElementById('logoImg');
-      if (img) {
-        img.onload = function() { console.log('Logo cargado correctamente.'); };
-        img.onerror = function() {
-          console.warn('No se pudo cargar el logo. Se muestra texto de respaldo.');
-          this.style.display = 'none';
-        };
-      }
-    })();
+function openBillar(){var t=new Date().toISOString().split('T')[0];document.getElementById('billarDate').setAttribute('min',t);var sel=document.getElementById('billarTime');sel.innerHTML='<option value="">Selecciona hora</option>';for(var i=8;i<=22;i++){var ap=i>=12?'PM':'AM',h12=i>12?i-12:i;sel.innerHTML+='<option value="'+h12+':00 '+ap+'">'+h12+':00 '+ap+'</option>'}openM('billarModal')}
 
-    /* =============================================
-       CARGA DE DATOS
-       ============================================= */
-    async function fetchStoreData() {
-      if (!supabaseClient) {
-        console.warn('Supabase no disponible.');
-        document.getElementById('connWarning').classList.add('show');
-        sanitizeData(); renderSidebar(); renderFeatured(); renderCatalog(); renderAdminSidebar();
-        return;
-      }
+function sendBillarBooking(){var n=document.getElementById('billarName').value.trim(),ph=document.getElementById('billarPhone').value.trim(),dr=document.getElementById('billarDate').value,tm=document.getElementById('billarTime').value;if(!n||!ph||!dr||!tm){toast('Completa todos los datos','error');return}var fd=new Date(dr+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}),r=Number(D.exchangeRate)||300,msg='*Reserva de Billar - Peaky Pan*\n\n*Cliente:* '+n+'\n*Teléfono:* '+ph+'\n*Día:* '+fd+'\n*Hora:* '+tm+'\n\n*Precio:* 600 CUP ($'+(600/r).toFixed(2)+' USD) la hora\n\n*Por favor confirmar su reserva.*',pc=(D.whatsappNumber||'').replace(/[^0-9]/g,'');if(!pc){toast('Configura WhatsApp en Config','error');return}window.open('https://wa.me/'+pc+'?text='+encodeURIComponent(msg),'_blank');closeAll()}
 
-      try {
-        var settingsResp = await supabaseClient.from('peaky_settings').select('*').eq('id', 1).single();
-        if (settingsResp.data) {
-          var settings = settingsResp.data;
-          storeData.whatsappNumber = settings.whatsappNumber || '';
-          storeData.exchangeRate = Number(settings.exchangeRate) || 300;
-          if (settings.shippingZones) {
-            storeData.shippingZones = (typeof settings.shippingZones === 'string') ? JSON.parse(settings.shippingZones) : settings.shippingZones;
-          }
-        }
+function renderCat(){var g=document.getElementById('productGrid'),secs=D.sections||[],show=secTab===-1?secs:(secs[secTab]?[secs[secTab]]:[]),h='';for(var i=0;i<show.length;i++){var s=show[i];if(!s.products||!s.products.length)continue;if(secTab===-1)h+='<div class="col-span-2 mt-4 mb-2"><h3 class="font-display text-lg text-yolk flex items-center gap-2"><i class="'+(s.icon||'fas fa-utensils')+'"></i> '+s.name+'</h3></div>';for(var j=0;j<s.products.length;j++){var p=s.products[j],q=Number(p.quantity)||0,av=q>0;h+='<div class="product-card flex flex-col"><img src="'+(p.image_url||'https://picsum.photos/400/400')+'" class="w-full h-36 object-cover"><div class="p-3 flex flex-col flex-grow"><h4 class="font-bold text-sm text-white leading-tight mb-1 truncate">'+p.name+'</h4><p class="text-[10px] '+(av?'text-green-400':'text-red-400')+' mb-2">'+(av?'Disponible':'Agotado')+'</p><div class="mt-auto text-sm">'+fmtP(p.priceCUP)+'</div>';if(av)h+='<button onclick="addCart('+p.id+')" class="w-full mt-2 py-2 rounded bg-yolk text-black font-bold text-xs active:scale-95 transition">AGREGAR</button>';else h+='<button disabled class="w-full mt-2 py-2 rounded bg-gray-800 text-gray-600 font-bold text-xs cursor-not-allowed">AGOTADO</button>';h+='</div></div>'}}g.innerHTML=h||'<p class="col-span-2 text-center text-gray-700 py-12">No hay productos.</p>'}
 
-        var secsResp = await supabaseClient.from('peaky_sections').select('*').order('id', { ascending: true });
-        var prodsResp = await supabaseClient.from('peaky_products').select('*');
-        var secs = secsResp.data || [];
-        var prods = prodsResp.data || [];
+function addCart(pid){var p=findProd(pid);if(!p)return;var cur=0;for(var i=0;i<cart.length;i++)if(cart[i].id===p.id){cur=cart[i].quantity;break}if(cur>=(Number(p.quantity)||0)){toast('Sin stock','error');return}var f=false;for(var i=0;i<cart.length;i++)if(cart[i].id===p.id){cart[i].quantity++;f=true;break}if(!f)cart.push({id:p.id,name:p.name,priceCUP:Number(p.priceCUP)||0,image:p.image_url,quantity:1});updBadge();toast('Añadido al pedido','success')}
+function openCart(){openM('cartModal');renderCart()}
+function updBadge(){var t=0;for(var i=0;i<cart.length;i++)t+=cart[i].quantity;var b=document.getElementById('cartBadge');if(t>0){b.textContent=t;b.classList.remove('hidden')}else b.classList.add('hidden')}
+function updQty(pid,d){for(var i=0;i<cart.length;i++){if(cart[i].id===pid){cart[i].quantity+=d;if(cart[i].quantity<=0)cart.splice(i,1);break}}renderCart();updBadge()}
 
-        storeData.sections = [];
-        for (var i = 0; i < secs.length; i++) {
-          var sec = secs[i];
-          sec.products = [];
-          for (var j = 0; j < prods.length; j++) {
-            if (prods[j].section_id === sec.id) sec.products.push(prods[j]);
-          }
-          storeData.sections.push(sec);
-        }
+function renderCart(){
+  var ci=document.getElementById('cartItems'),cf=document.getElementById('checkoutForm');
+  if(!cart.length){ci.innerHTML='<p class="text-center text-gray-700 py-8">Tu pedido está vacío</p>';cf.classList.add('hidden');return}
+  var h='',tC=0;
+  for(var i=0;i<cart.length;i++){var it=cart[i],sub=(Number(it.priceCUP)||0)*it.quantity;tC+=sub;h+='<div class="flex gap-3 items-center border-b border-gray-800 pb-3"><img src="'+(it.image||'https://picsum.photos/100/100')+'" class="w-14 h-14 rounded-lg object-cover"><div class="flex-grow"><h4 class="font-bold text-sm text-white">'+it.name+'</h4><p class="text-xs text-gray-500">'+Math.round(it.priceCUP).toLocaleString()+' CUP x '+it.quantity+'</p></div><div class="flex items-center gap-2"><button onclick="updQty('+it.id+',-1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">-</button><span class="font-bold w-4 text-center text-sm text-white">'+it.quantity+'</span><button onclick="updQty('+it.id+',1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">+</button></div></div>'}
+  ci.innerHTML=h;
+  var sel=document.getElementById('checkMunicipality');sel.innerHTML='<option value="">Selecciona el municipio</option>';
+  for(var i=0;i<D.shippingZones.length;i++){var z=D.shippingZones[i];sel.innerHTML+='<option value="'+z.name+'" data-cost="'+z.cost+'">'+z.name+' (+'+Math.round(z.cost).toLocaleString()+' CUP)</option>'}
+  function updT(){var c=Number(sel.options[sel.selectedIndex].dataset.cost)||0,tot=tC+c;document.getElementById('cartTotalSummary').innerHTML='<p class="text-sm text-gray-400">Subtotal: '+Math.round(tC).toLocaleString()+' CUP ($'+usd(tC).toFixed(2)+' USD)</p>'+(c>0?'<p class="text-sm text-gray-400">Envío: '+Math.round(c).toLocaleString()+' CUP</p>':'')+'<p class="font-bold text-xl text-yolk mt-1">TOTAL: '+Math.round(tot).toLocaleString()+' CUP ($'+usd(tot).toFixed(2)+' USD)</p>'}
+  sel.onchange=updT;updT();cf.classList.remove('hidden');
+}
 
-        document.getElementById('connWarning').classList.remove('show');
+async function sendOrder(){
+  var n=document.getElementById('checkName').value.trim(),ph=document.getElementById('checkPhone').value.trim(),ad=document.getElementById('checkAddress').value.trim(),ms=document.getElementById('checkMunicipality'),mu=ms.value,sc=Number(ms.options[ms.selectedIndex].dataset.cost)||0,pay=document.getElementById('checkPayment').value,nt=document.getElementById('checkNotes').value.trim();
+  if(!n||!ph||!ad||!mu){toast('Completa todos los datos','error');return}
+  var msg='*Pedido Peaky Pan*\n\n*Cliente:* '+n+'\n*Tel:* '+ph+'\n*Dir:* '+ad+', '+mu+'\n*Pago:* '+pay+'\n';if(nt)msg+='*Notas:* '+nt+'\n';msg+='\n*Productos:*\n';
+  var tC=0,ups=[];
+  for(var i=0;i<cart.length;i++){var it=cart[i],sub=(Number(it.priceCUP)||0)*it.quantity;tC+=sub;msg+='  - '+it.name+' x'+it.quantity+' — '+Math.round(sub).toLocaleString()+' CUP ($'+usd(sub).toFixed(2)+' USD)\n';var p=findProd(it.id);if(p){p.quantity=Math.max(0,(Number(p.quantity)||0)-it.quantity);ups.push(db.from('peaky_products').update({quantity:p.quantity}).eq('id',p.id))}}
+  var tot=tC+sc;msg+='\n*Envío:* '+Math.round(sc).toLocaleString()+' CUP\n\n*TOTAL:* '+Math.round(tot).toLocaleString()+' CUP ($'+usd(tot).toFixed(2)+' USD)';
+  try{if(ups.length)await Promise.all(ups);await loadData()}catch(e){}
+  var pc=(D.whatsappNumber||'').replace(/[^0-9]/g,'');if(!pc){toast('Configura WhatsApp en Config','error');return}
+  window.open('https://wa.me/'+pc+'?text='+encodeURIComponent(msg),'_blank');cart=[];updBadge();closeAll();
+}
 
-      } catch(e) {
-        console.error("Error cargando datos:", e);
-        document.getElementById('connWarning').classList.add('show');
-      }
+function showAdminPage(pg){adminPg=pg;editSec=null;editProd=null;var tabs=document.querySelectorAll('.admin-tab');for(var i=0;i<tabs.length;i++){var a=tabs[i].dataset.page===pg;tabs[i].classList.toggle('bg-yolk/20',a);tabs[i].classList.toggle('text-yolk',a);tabs[i].classList.toggle('text-gray-500',!a)}var c=document.getElementById('adminContent');if(pg==='dashboard')renderDash(c);else if(pg==='sections')renderSecList(c);else if(pg==='products')renderProdList(c);else if(pg==='settings')renderSett(c)}
 
-      sanitizeData(); renderSidebar(); renderFeatured(); renderCatalog(); renderAdminSidebar();
+function renderDash(el){var t=0;for(var i=0;i<D.sections.length;i++)t+=(D.sections[i].products||[]).length;el.innerHTML='<div class="grid grid-cols-2 gap-4"><div class="bg-[#111] rounded-lg p-5 border border-gray-800"><p class="text-gray-600 text-xs">Secciones</p><p class="text-3xl font-bold text-yolk">'+D.sections.length+'</p></div><div class="bg-[#111] rounded-lg p-5 border border-gray-800"><p class="text-gray-600 text-xs">Productos</p><p class="text-3xl font-bold text-yolk">'+t+'</p></div><div class="col-span-2 bg-[#111] rounded-lg p-5 border border-gray-800"><p class="text-xs text-gray-600 mb-1">Tasa de cambio</p><p class="text-2xl font-bold text-yolk">1 USD = '+(D.exchangeRate||300)+' CUP</p></div></div>'}
 
-      if (document.getElementById('adminModal').classList.contains('visible')) {
-        showAdminPage(currentAdminPage);
-      }
-    }
+function renderSecList(el){var h='';for(var i=0;i<D.sections.length;i++){var s=D.sections[i];h+='<div class="bg-[#111] rounded-lg p-4 border border-gray-800 flex justify-between items-center"><div class="flex items-center gap-3"><i class="'+(s.icon||'fas fa-utensils')+' text-yolk"></i><span class="font-bold text-sm text-white">'+s.name+'</span></div><div class="flex gap-2"><button onclick="formSec('+s.id+')" class="px-3 py-1.5 rounded bg-gray-800 text-xs font-bold text-white">Editar</button><button onclick="delSec('+s.id+')" class="px-3 py-1.5 rounded bg-red-900/30 text-red-400 text-xs font-bold">X</button></div></div>'}el.innerHTML='<button onclick="formSec(null)" class="w-full mb-4 px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i>Nueva Sección</button><div class="space-y-3">'+h+'</div>'}
 
-    async function uploadImage(file) {
-      if (!file || !supabaseClient) return null;
-      var fileExt = file.name.split('.').pop();
-      var fileName = Date.now() + '_' + Math.random().toString(36).substring(7) + '.' + fileExt;
-      var filePath = 'productos/' + fileName;
-      var result = await supabaseClient.storage.from('peaky_imagenes').upload(filePath, file, { cacheControl: '3600', upsert: false });
-      if (result.error) { showToast('Error subiendo imagen', 'error'); return null; }
-      var urlData = supabaseClient.storage.from('peaky_imagenes').getPublicUrl(filePath);
-      return urlData.data.publicUrl;
-    }
+function formSec(id){editSec=id;var s=null;if(id)for(var i=0;i<D.sections.length;i++)if(D.sections[i].id===Number(id)){s=D.sections[i];break}document.getElementById('adminContent').innerHTML='<button onclick="showAdminPage(\'sections\')" class="text-gray-500 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button><h3 class="font-display text-lg text-yolk mb-4">'+(s?'EDITAR':'NUEVA')+' SECCIÓN</h3><div class="space-y-3"><div><label class="text-xs text-gray-600">Nombre *</label><input id="sf_name" type="text" value="'+(s?s.name:'')+'" class="admin-input mt-1"></div><div><label class="text-xs text-gray-600">Icono</label><input id="sf_icon" type="text" value="'+(s?s.icon:'fas fa-utensils')+'" class="admin-input mt-1"></div><button onclick="saveSec()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR</button></div>'}
 
-    /* =============================================
-       AUTENTICACIÓN
-       ============================================= */
-    function checkAuth() {
-      if (!supabaseClient) return;
-      supabaseClient.auth.onAuthStateChange(function(event, session) {
-        isLoggedIn = !!session;
-        renderAdminSidebar();
-      });
-    }
+async function saveSec(){var n=document.getElementById('sf_name').value.trim(),ic=document.getElementById('sf_icon').value.trim()||'fas fa-utensils';if(!n)return toast('Nombre obligatorio','error');if(editSec)await db.from('peaky_sections').update({name:n,icon:ic}).eq('id',editSec);else await db.from('peaky_sections').insert({name:n,icon:ic});toast('Guardado','success');await loadData();showAdminPage('sections')}
+async function delSec(id){if(!confirm('¿Eliminar sección y sus productos?'))return;await db.from('peaky_sections').delete().eq('id',id);toast('Eliminada','success');await loadData();showAdminPage('sections')}
 
-    async function handleLogin() {
-      if (!supabaseClient) return showToast('Error de conexión', 'error');
-      try {
-        await supabaseClient.auth.signInWithPassword({
-          email: document.getElementById('loginUser').value,
-          password: document.getElementById('loginPass').value
-        });
-        closeAllModals(); openModal('adminModal'); showAdminPage('dashboard'); renderAdminSidebar();
-        showToast('Bienvenida al Panel', 'success');
-      } catch(e) {
-        document.getElementById('loginError').classList.remove('hidden');
-      }
-    }
+function renderProdList(el){if(!D.sections.length){el.innerHTML='<p class="text-gray-500 text-center py-8">Crea una sección primero.</p>';return}if(admSec>=D.sections.length)admSec=0;var sh='';for(var i=0;i<D.sections.length;i++)sh+='<option value="'+i+'"'+(admSec===i?' selected':'')+'>'+D.sections[i].name+'</option>';var sc=D.sections[admSec],ph='';if(sc&&sc.products)for(var j=0;j<sc.products.length;j++){var p=sc.products[j];ph+='<div class="bg-[#111] rounded-lg border border-gray-800 overflow-hidden"><img src="'+(p.image_url||'https://picsum.photos/400/400')+'" class="w-full h-24 object-cover"><div class="p-3"><h4 class="font-bold text-xs text-white truncate">'+p.name+'</h4><p class="text-sm text-white mt-1">'+Math.round(p.priceCUP).toLocaleString()+' CUP <span class="text-[10px] text-yolk">($'+usd(p.priceCUP).toFixed(2)+' USD)</span></p><div class="flex items-center justify-between mt-2"><span class="text-[10px] '+(p.is_featured?'text-yolk font-bold':'text-gray-600')+'"><i class="fas fa-star mr-1"></i>Destacado</span><div class="flex gap-2"><button onclick="formProd('+sc.id+','+p.id+')" class="flex-1 py-1.5 rounded bg-gray-800 font-bold text-[11px] text-white">Editar</button><button onclick="delProd('+p.id+')" class="flex-1 py-1.5 rounded bg-red-900/30 text-red-400 font-bold text-[11px]">X</button></div></div></div></div>'}el.innerHTML='<div class="flex flex-col gap-3 mb-4"><select id="admSecSel" class="admin-input text-sm">'+sh+'</select><button onclick="formProd('+sc.id+',null)" class="w-full px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i>NUEVO PRODUCTO</button></div><div class="grid grid-cols-1 gap-3">'+ph+'</div>';setTimeout(function(){var sel=document.getElementById('admSecSel');if(sel)sel.onchange=function(){admSec=parseInt(this.value);renderProdList(document.getElementById('adminContent'))}},50)}
 
-    async function handleLogout() {
-      if (supabaseClient) await supabaseClient.auth.signOut();
-      closeAllModals(); showToast('Sesión cerrada');
-    }
+function formProd(sid,pid){editProdSec=sid;editProd=pid;var s=null,p=null;for(var i=0;i<D.sections.length;i++)if(D.sections[i].id===Number(sid)){s=D.sections[i];break}if(s&&pid)for(var j=0;j<s.products.length;j++)if(s.products[j].id===Number(pid)){p=s.products[j];break}document.getElementById('adminContent').innerHTML='<button onclick="showAdminPage(\'products\')" class="text-gray-500 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button><h3 class="font-display text-lg text-yolk mb-4">'+(p?'EDITAR':'NUEVO')+' PRODUCTO</h3><div class="space-y-3"><div><label class="text-xs text-gray-600">Nombre *</label><input id="pf_name" type="text" value="'+(p?p.name:'')+'" class="admin-input mt-1"></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs text-gray-600">Precio (CUP) *</label><input id="pf_price" type="number" value="'+(p?p.priceCUP:0)+'" class="admin-input mt-1"></div><div><label class="text-xs text-gray-600">Stock *</label><input id="pf_qty" type="number" value="'+(p?p.quantity:0)+'" class="admin-input mt-1"></div></div><div><label class="text-xs text-gray-600">Imagen</label><input type="file" id="pf_file" accept="image/*" class="admin-input text-xs">'+(p&&p.image_url?'<img src="'+p.image_url+'" class="w-full h-28 object-contain rounded mt-2 bg-black">':'')+'</div><div class="flex items-center gap-3 p-3 bg-[#111] rounded-lg border border-gray-800 cursor-pointer" onclick="document.getElementById(\'pf_feat\').click()"><input type="checkbox" id="pf_feat" '+(p&&p.is_featured?'checked':'')+' class="w-5 h-5 accent-yellow-400 cursor-pointer"><label for="pf_feat" class="text-sm text-gray-400 cursor-pointer"><i class="fas fa-star text-yolk mr-1"></i> Mostrar en Ofertas</label></div><button onclick="saveProd()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR PRODUCTO</button></div>'}
 
-    function renderAdminSidebar() {
-      var el = document.getElementById('sidebarAdmin');
-      if (isLoggedIn) {
-        el.innerHTML = '<button onclick="toggleSidebar();openModal(\'adminModal\');showAdminPage(\'dashboard\');" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk"><i class="fas fa-cog w-5"></i> Panel Admin</button>';
-      } else {
-        el.innerHTML = '<button onclick="toggleSidebar();openModal(\'loginModal\');" class="w-full text-left p-3 rounded-lg border border-gray-700 hover:border-yolk/50 transition font-medium flex items-center gap-3 text-gray-600 hover:text-yolk"><i class="fas fa-lock w-5"></i> Admin</button>';
-      }
-    }
+async function saveProd(){var n=document.getElementById('pf_name').value.trim(),pr=Number(document.getElementById('pf_price').value)||0,qt=Number(document.getElementById('pf_qty').value)||0,f=document.getElementById('pf_file').files[0],fe=document.getElementById('pf_feat').checked;if(!n||pr<=0){toast('Completa nombre y precio','error');return}var img='';if(editProd){var ex=findProd(editProd);if(ex)img=ex.image_url||''}if(f){img=await upImg(f);if(!img)return}if(!img)img='https://picsum.photos/seed/'+Date.now()+'/400/400';var pl={name:n,priceCUP:pr,quantity:qt,image_url:img,section_id:Number(editProdSec),is_featured:fe};if(editProd)await db.from('peaky_products').update(pl).eq('id',editProd);else await db.from('peaky_products').insert(pl);toast('Producto guardado','success');await loadData();showAdminPage('products')}
+async function delProd(id){if(!confirm('¿Eliminar este producto?'))return;await db.from('peaky_products').delete().eq('id',id);toast('Eliminado','success');await loadData();renderProdList(document.getElementById('adminContent'))}
 
-    /* =============================================
-       SIDEBAR
-       ============================================= */
-    function renderSidebar() {
-      var menu = document.getElementById('sidebarMenu');
-      var html = '<button onclick="filterBySection(-1);toggleSidebar();" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk mb-2"><i class="fas fa-fire w-5"></i> Todos</button>';
-      for (var i = 0; i < storeData.sections.length; i++) {
-        var s = storeData.sections[i];
-        html += '<button onclick="filterBySection(' + i + ');toggleSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-yolk/10 hover:text-yolk transition font-medium flex items-center gap-3 text-gray-500"><i class="' + (s.icon || 'fas fa-utensils') + ' w-5 text-yolk"></i> ' + s.name + '</button>';
-      }
-      menu.innerHTML = html;
-    }
+function renderSett(el){var zh='';for(var i=0;i<D.shippingZones.length;i++){var z=D.shippingZones[i];zh+='<div class="flex items-center justify-between bg-black p-2 rounded border border-gray-800"><span class="text-sm text-white">'+z.name+'</span><div class="flex items-center gap-3"><span class="text-yolk font-bold text-sm">'+Math.round(z.cost).toLocaleString()+' CUP</span><button onclick="rmZone('+i+')" class="text-red-400"><i class="fas fa-trash text-xs"></i></button></div></div>'}el.innerHTML='<div class="space-y-4"><div class="bg-[#111] rounded-lg p-4 border border-gray-800 space-y-4"><h3 class="font-display text-sm text-yolk">VENTAS Y MONEDA</h3><div><label class="text-xs text-gray-600">WhatsApp</label><input id="st_wa" type="text" value="'+(D.whatsappNumber||'')+'" class="admin-input mt-1"></div><div class="p-3 bg-black rounded-lg border border-yolk/30"><label class="text-xs text-yolk font-bold block mb-2">CAMBIO DE MONEDA</label><div class="flex items-center gap-2"><span class="text-white font-bold">1 USD =</span><input id="st_ex" type="number" value="'+(D.exchangeRate||300)+'" class="admin-input flex-1"><span class="text-white font-bold">CUP</span></div></div></div><div class="bg-[#111] rounded-lg p-4 border border-gray-800 space-y-3"><h3 class="font-display text-sm text-yolk">MENSAJERÍA</h3><div class="space-y-2 max-h-40 overflow-y-auto">'+(zh||'<p class="text-xs text-gray-700 text-center">Sin municipios</p>')+'</div><div class="flex gap-2"><input id="sz_n" type="text" placeholder="Municipio" class="admin-input flex-1 text-sm py-2"><input id="sz_c" type="number" placeholder="Costo CUP" class="admin-input w-28 text-sm py-2"></div><button onclick="addZone()" class="w-full py-2 rounded bg-gray-800 font-bold text-xs text-white">AÑADIR</button></div><button onclick="saveSett()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR CONFIGURACIÓN</button></div>'}
 
-    /* =============================================
-       DESTACADOS
-       ============================================= */
-    function renderFeatured() {
-      var grid = document.getElementById('featuredScroll');
-      var rate = Number(storeData.exchangeRate) || 300;
-      var billarUsdEl = document.getElementById('billarUsd');
-      if (billarUsdEl) billarUsdEl.innerText = '($' + (600 / rate).toFixed(2) + ' USD)';
+async function addZone(){var n=document.getElementById('sz_n').value.trim(),c=Number(document.getElementById('sz_c').value)||0;if(!n)return;D.shippingZones.push({name:n,cost:c});await db.from('peaky_settings').update({shippingZones:D.shippingZones}).eq('id',1);toast('Municipio añadido','success');await loadData();renderSett(document.getElementById('adminContent'))}
+async function rmZone(i){D.shippingZones.splice(i,1);await db.from('peaky_settings').update({shippingZones:D.shippingZones}).eq('id',1);toast('Eliminado','success');await loadData();renderSett(document.getElementById('adminContent'))}
+async function saveSett(){D.whatsappNumber=document.getElementById('st_wa').value.trim();D.exchangeRate=Number(document.getElementById('st_ex').value)||300;await db.from('peaky_settings').update({whatsappNumber:D.whatsappNumber,exchangeRate:D.exchangeRate}).eq('id',1);toast('Configuración guardada','success');await loadData()}
 
-      var html = '';
-
-      html += '<div class="featured-card snap-start relative bg-dark-card">';
-      html += '<img src="https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover opacity-70" onerror="this.src=\'https://picsum.photos/600/400?grayscale\'">';
-      html += '<div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>';
-      html += '<div class="absolute bottom-0 left-0 right-0 p-4 border-t-2 border-yolk">';
-      html += '<p class="text-xs text-yolk font-bold mb-1">SERVICIO EN LOCAL</p>';
-      html += '<h3 class="font-display text-2xl text-white leading-tight mb-2">BILLAR</h3>';
-      html += '<p class="text-sm text-white mb-3">600 CUP <span class="text-xs text-yolk">($' + (600 / rate).toFixed(2) + ' USD)</span> / Hora</p>';
-      html += '<button onclick="openBillarModal()" class="w-full bg-yolk text-black py-2 rounded font-bold text-sm active:scale-95 transition">RESERVAR HORA</button>';
-      html += '</div></div>';
-
-      var featured = getAllProducts().filter(function(p) { return p.is_featured === true; });
-      for (var i = 0; i < featured.length; i++) {
-        var p = featured[i];
-        html += '<div class="featured-card snap-start relative bg-dark-card">';
-        html += '<img src="' + (p.image_url || 'https://picsum.photos/400/400') + '" class="w-full h-full object-cover opacity-80">';
-        html += '<div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>';
-        html += '<div class="absolute bottom-0 left-0 right-0 p-4">';
-        html += '<p class="text-xs text-yolk font-bold mb-1">OFERTA</p>';
-        html += '<h3 class="font-display text-xl text-white leading-tight mb-2">' + p.name + '</h3>';
-        html += '<div class="flex justify-between items-end">';
-        html += '<div class="text-sm">' + formatPrice(p.priceCUP) + '</div>';
-        html += '<button onclick="addToCart(' + p.id + ')" class="bg-yolk text-black px-3 py-1 rounded font-bold text-xs active:scale-95 transition">PEDIR</button>';
-        html += '</div></div></div>';
-      }
-
-      grid.innerHTML = html;
-    }
-
-    /* =============================================
-       MODAL BILLAR
-       ============================================= */
-    function openBillarModal() {
-      var today = new Date().toISOString().split('T')[0];
-      document.getElementById('billarDate').setAttribute('min', today);
-      var sel = document.getElementById('billarTime');
-      sel.innerHTML = '<option value="">Selecciona hora</option>';
-      for (var i = 8; i <= 22; i++) {
-        var ampm = (i >= 12) ? 'PM' : 'AM';
-        var hour12 = (i > 12) ? (i - 12) : i;
-        sel.innerHTML += '<option value="' + hour12 + ':00 ' + ampm + '">' + hour12 + ':00 ' + ampm + '</option>';
-      }
-      openModal('billarModal');
-    }
-
-    function sendBillarBooking() {
-      var name = document.getElementById('billarName').value.trim();
-      var phone = document.getElementById('billarPhone').value.trim();
-      var dateRaw = document.getElementById('billarDate').value;
-      var time = document.getElementById('billarTime').value;
-      if (!name || !phone || !dateRaw || !time) { showToast('Completa todos los datos', 'error'); return; }
-      var formattedDate = new Date(dateRaw + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-      var rate = Number(storeData.exchangeRate) || 300;
-      var msg = '*Reserva de Billar - Peaky Pan*\n\n*Cliente:* ' + name + '\n*Teléfono:* ' + phone + '\n*Día:* ' + formattedDate + '\n*Hora:* ' + time + '\n\n*Precio:* 600 CUP ($' + (600 / rate).toFixed(2) + ' USD) la hora\n\n*Por favor confirmar su reserva.*';
-      var phoneClean = (storeData.whatsappNumber || '').replace(/[^0-9]/g, '');
-      if (!phoneClean) { showToast('Configura el número de WhatsApp en el panel admin', 'error'); return; }
-      window.open('https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(msg), '_blank');
-      closeAllModals();
-    }
-
-    /* =============================================
-       CATÁLOGO
-       ============================================= */
-    function renderCatalog() {
-      var grid = document.getElementById('productGrid');
-      var secs = storeData.sections || [];
-      var showS = (activeSectionTab === -1) ? secs : (secs[activeSectionTab] ? [secs[activeSectionTab]] : []);
-      var html = '';
-      for (var i = 0; i < showS.length; i++) {
-        var s = showS[i];
-        if (!s.products || s.products.length === 0) continue;
-        if (activeSectionTab === -1) {
-          html += '<div class="col-span-2 mt-4 mb-2"><h3 class="font-display text-lg text-yolk flex items-center gap-2"><i class="' + (s.icon || 'fas fa-utensils') + '"></i> ' + s.name + '</h3></div>';
-        }
-        for (var j = 0; j < s.products.length; j++) {
-          var p = s.products[j];
-          var qty = Number(p.quantity) || 0;
-          var isAv = qty > 0;
-          html += '<div class="product-card flex flex-col">';
-          html += '<img src="' + (p.image_url || 'https://picsum.photos/400/400') + '" class="w-full h-36 object-cover">';
-          html += '<div class="p-3 flex flex-col flex-grow">';
-          html += '<h4 class="font-bold text-sm text-white leading-tight mb-1 truncate">' + p.name + '</h4>';
-          html += '<p class="text-[10px] ' + (isAv ? 'text-green-400' : 'text-red-400') + ' mb-2">' + (isAv ? 'Disponible' : 'Agotado') + '</p>';
-          html += '<div class="mt-auto text-sm">' + formatPrice(p.priceCUP) + '</div>';
-          if (isAv) {
-            html += '<button onclick="addToCart(' + p.id + ')" class="w-full mt-2 py-2 rounded bg-yolk text-black font-bold text-xs active:scale-95 transition">AGREGAR</button>';
-          } else {
-            html += '<button disabled class="w-full mt-2 py-2 rounded bg-gray-800 text-gray-600 font-bold text-xs cursor-not-allowed">AGOTADO</button>';
-          }
-          html += '</div></div>';
-        }
-      }
-      if (!html) html = '<p class="col-span-2 text-center text-gray-700 py-12">No hay productos en esta sección.</p>';
-      grid.innerHTML = html;
-    }
-
-    /* =============================================
-       CARRITO
-       ============================================= */
-    function addToCart(pId) {
-      var p = findProductById(pId);
-      if (!p) return;
-      var current = 0;
-      for (var i = 0; i < cart.length; i++) { if (cart[i].id === p.id) { current = cart[i].quantity; break; } }
-      if (current >= (Number(p.quantity) || 0)) { showToast('Sin stock', 'error'); return; }
-      var found = false;
-      for (var i = 0; i < cart.length; i++) { if (cart[i].id === p.id) { cart[i].quantity++; found = true; break; } }
-      if (!found) cart.push({ id: p.id, name: p.name, priceCUP: Number(p.priceCUP) || 0, image: p.image_url, quantity: 1 });
-      updateCartBadge(); showToast('Añadido al pedido', 'success');
-    }
-
-    function openCart() { openModal('cartModal'); renderCartModal(); }
-
-    function updateCartBadge() {
-      var t = 0;
-      for (var i = 0; i < cart.length; i++) t += cart[i].quantity;
-      var b = document.getElementById('cartBadge');
-      if (t > 0) { b.textContent = t; b.classList.remove('hidden'); }
-      else { b.classList.add('hidden'); }
-    }
-
-    function updateQuantity(pId, delta) {
-      for (var i = 0; i < cart.length; i++) {
-        if (cart[i].id === pId) { cart[i].quantity += delta; if (cart[i].quantity <= 0) cart.splice(i, 1); break; }
-      }
-      renderCartModal(); updateCartBadge();
-    }
-
-    function renderCartModal() {
-      var cI = document.getElementById('cartItems');
-      var cF = document.getElementById('checkoutForm');
-      if (cart.length === 0) {
-        cI.innerHTML = '<p class="text-center text-gray-700 py-8">Tu pedido está vacío</p>';
-        cF.classList.add('hidden'); return;
-      }
-      var h = '', tCUP = 0;
-      for (var i = 0; i < cart.length; i++) {
-        var item = cart[i];
-        var sub = (Number(item.priceCUP) || 0) * item.quantity;
-        tCUP += sub;
-        h += '<div class="flex gap-3 items-center border-b border-gray-800 pb-3">';
-        h += '<img src="' + (item.image || 'https://picsum.photos/100/100') + '" class="w-14 h-14 rounded-lg object-cover">';
-        h += '<div class="flex-grow"><h4 class="font-bold text-sm text-white">' + item.name + '</h4>';
-        h += '<p class="text-xs text-gray-500">' + Math.round(item.priceCUP).toLocaleString() + ' CUP x ' + item.quantity + '</p></div>';
-        h += '<div class="flex items-center gap-2">';
-        h += '<button onclick="updateQuantity(' + item.id + ',-1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">-</button>';
-        h += '<span class="font-bold w-4 text-center text-sm text-white">' + item.quantity + '</span>';
-        h += '<button onclick="updateQuantity(' + item.id + ',1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">+</button>';
-        h += '</div></div>';
-      }
-      cI.innerHTML = h;
-      var sel = document.getElementById('checkMunicipality');
-      sel.innerHTML = '<option value="">Selecciona el municipio</option>';
-      for (
+document.addEventListener('DOMContentLoaded',function(){
+  checkAuth();loadData();
+  document.getElementById('loginBtn').addEventListener('click',doLogin);
+  document.getElementById('adminLogout').addEventListener('click',doLogout);
+  document.getElementById('sendWhatsapp').addEventListener('click',sendOrder);
+  var ms=document.querySelectorAll('.modal-overlay');
+  for(var i=0;i<ms.length;i++){(function(m){m.addEventListener('click',function(e){if(e.target===m)closeAll()})})(ms[i])}
+  console.log('Peaky Pan listo.');
+});
+</script>
+</body>
+      </html>
