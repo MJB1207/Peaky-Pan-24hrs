@@ -42,7 +42,7 @@
     
     .product-card { background: var(--card); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: all 0.2s; }
     .product-card:active { transform: scale(0.97); border-color: var(--accent); }
-    .featured-card { min-width: 280px; height: 350px; position: relative; border-radius: 16px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 25px rgba(255, 215, 0, 0.2); }
+    .featured-card { min-width: 280px; height: 350px; position: relative; border-radius: 16px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 25px rgba(255, 215, 0, 0.2); flex-shrink: 0; }
     
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); border-top: 1px solid #222; z-index: 900; padding-bottom: env(safe-area-inset-bottom); display: flex; }
     .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #666; padding: 12px 0; background: none; border: none; cursor: pointer; flex: 1; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
@@ -57,12 +57,25 @@
     .admin-input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; font-size: 15px; font-family: 'Inter', sans-serif; background: #1a1a1a; color: #fff; }
     .admin-input:focus { outline: none; border-color: var(--accent); }
     .badge-cart { position: absolute; top: 5px; right: calc(50% - 15px); background: var(--accent); color: #000; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .tabs-scroll { overflow-x: auto; scrollbar-width: none; } .tabs-scroll::-webkit-scrollbar { display: none; }
+    .tabs-scroll { overflow-x: auto; scrollbar-width: none; }
+    .tabs-scroll::-webkit-scrollbar { display: none; }
     .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120%); background: var(--accent); color: #000; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 2000; transition: transform 0.4s; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .logo-container { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 200px; }
+    .logo-text-fallback { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 0 20px; }
+    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0 16px; }
+
+    .conn-warning { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; padding: 10px 16px; border-radius: 8px; font-size: 13px; text-align: center; margin: 12px 16px; display: none; }
+    .conn-warning.show { display: block; }
   </style>
 </head>
 <body>
+
+  <div id="connWarning" class="conn-warning">
+    <i class="fas fa-exclamation-triangle mr-1"></i>
+    No se pudo conectar a la base de datos. Revisa tu conexión a internet.
+  </div>
 
   <!-- SIDEBAR LATERAL -->
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -74,12 +87,24 @@
     <div class="p-4 border-t border-gray-800 space-y-2" id="sidebarAdmin"></div>
   </div>
 
-  <!-- HEADER CON LOGO GRANDE -->
+  <!-- HEADER CON LOGO -->
   <header class="relative bg-black flex items-center justify-center py-10 border-b border-gray-900">
-    <img src="https://raw.githubusercontent.com/MJB1207/Peaky-Pan-24hrs/main/Screenshot_20260627-093528_WhatsApp.jpg" alt="Peaky Pan Logo" class="w-full max-h-64 object-contain px-4 drop-shadow-[0_0_40px_rgba(255,215,0,0.3)]" onerror="this.style.display='none'; this.parentElement.innerHTML='<h1 class=\'font-display text-4xl text-yolk\'>PEAKY PAN</h1><p class=\'text-gray-500 text-sm mt-1\'>Tienda 24 Horas</p>';">
+    <div class="logo-container">
+      <div class="logo-text-fallback">
+        <h1 class="text-5xl font-bold text-yolk drop-shadow-[0_0_30px_rgba(255,215,0,0.4)]">PEAKY PAN</h1>
+        <p class="text-gray-400 text-sm mt-2 tracking-widest">Tienda Minorista 24 Horas</p>
+      </div>
+      <img
+        id="logoImg"
+        src="https://raw.githubusercontent.com/MJB1207/Peaky-Pan-24hrs/b48779d1989d162371d33745fedc090328111a22/1782923872639.png"
+        alt="Peaky Pan Logo"
+        class="logo-img"
+        crossorigin="anonymous"
+      >
+    </div>
   </header>
 
-  <!-- DESTACADOS (BILLAR + OFERTAS) -->
+  <!-- DESTACADOS -->
   <section id="destacados" class="py-8 px-4 bg-black">
     <div class="flex justify-between items-center mb-6 px-2">
       <h2 class="font-display text-3xl text-yolk flex items-center gap-3"><i class="fas fa-star"></i> DESTACADOS</h2>
@@ -174,83 +199,106 @@
 
   <!-- BARRA INFERIOR -->
   <nav class="bottom-nav">
-    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="active"><i class="fas fa-home text-xl"></i><span>Inicio</span></button>
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="active"><i class="fas fa-home text-xl"></i><span>Inicio</span></button>
     <button onclick="toggleSidebar()" id="navMenu"><i class="fas fa-bars text-xl"></i><span>Menú</span></button>
     <button onclick="openCart()" id="navCart" class="relative"><i class="fas fa-shopping-bag text-xl"></i><span id="cartBadge" class="badge-cart hidden">0</span><span>Pedido</span></button>
   </nav>
 
   <script>
-    // ==========================================
-    // CONFIGURACIÓN SUPABASE
-    // ==========================================
-    const SUPABASE_URL = 'https://qtbhkurhxgdfxlnzswbw.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_8Ra6i_2TbLeevenI00jdHg_k0K1Ilj6';
-    let supabaseClient;
+    /* =============================================
+       CONFIGURACIÓN SUPABASE — CLAVE REAL INCLUIDA
+       ============================================= */
+    var SUPABASE_URL = 'https://qtbhkurhxgdfxlnzswbw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0YmhrdXJoeGdkZnhsbnpzd2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4OTMzMDUsImV4cCI6MjA5ODQ2OTMwNX0.RGVxA4g3BrUBFEgYAiCJuzLQHIoRF6ALov9r7wZtPrA';
+    var supabaseClient = null;
+
     try {
-      // CORRECCIÓN: el CDN expone window.supabase, no window.supabaseClient
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase conectado correctamente.');
+      }
     } catch(e) {
-      console.error("Error iniciando Supabase:", e);
+      console.error('Error creando cliente Supabase:', e);
     }
 
-    // ==========================================
-    // ESTADO GLOBAL
-    // ==========================================
-    let storeData = { sections: [], shippingZones: [], exchangeRate: 300 };
-    let isLoggedIn = false;
-    let currentAdminPage = 'dashboard';
-    let activeSectionTab = -1;
-    let adminSelectedSection = 0;
-    let cart = [];
-    let editingSectionId = null;
-    let editingProductId = null;
-    let editingProductSectionId = null;
+    /* =============================================
+       ESTADO GLOBAL
+       ============================================= */
+    var storeData = { sections: [], shippingZones: [], exchangeRate: 300, whatsappNumber: '' };
+    var isLoggedIn = false;
+    var currentAdminPage = 'dashboard';
+    var activeSectionTab = -1;
+    var adminSelectedSection = 0;
+    var cart = [];
+    var editingSectionId = null;
+    var editingProductId = null;
+    var editingProductSectionId = null;
 
-    // ==========================================
-    // UTILIDADES
-    // ==========================================
+    /* =============================================
+       UTILIDADES
+       ============================================= */
     function sanitizeData() {
       if (!storeData.sections) storeData.sections = [];
       if (!storeData.shippingZones) storeData.shippingZones = [];
       storeData.exchangeRate = Number(storeData.exchangeRate) || 300;
-      storeData.sections.forEach(function(s) {
+      for (var i = 0; i < storeData.sections.length; i++) {
+        var s = storeData.sections[i];
         if (!s.products) s.products = [];
         s.id = Number(s.id);
-        s.products.forEach(function(p) {
+        for (var j = 0; j < s.products.length; j++) {
+          var p = s.products[j];
           p.id = Number(p.id);
           p.priceCUP = Number(p.priceCUP) || 0;
           p.quantity = Number(p.quantity) || 10;
-          p.is_featured = p.is_featured === true;
-        });
-      });
+          p.is_featured = (p.is_featured === true);
+        }
+      }
     }
 
-    // CORRECCIÓN: faltaba cerrar el paréntesis
     function getUSD(priceCUP) {
       return Number(priceCUP) / (Number(storeData.exchangeRate) || 300);
     }
 
-    // CORRECCIÓN: toLocaleString() se aplica al número, no dentro de Math.round()
     function formatPrice(priceCUP) {
-      return '<span class="text-white font-bold">' + Math.round(Number(priceCUP)).toLocaleString() + ' CUP</span> <span class="text-xs text-yolk font-normal">($' + getUSD(priceCUP).toFixed(2) + ' USD)</span>';
+      var cup = Math.round(Number(priceCUP));
+      var usd = getUSD(priceCUP).toFixed(2);
+      return '<span class="text-white font-bold">' + cup.toLocaleString() + ' CUP</span> <span class="text-xs text-yolk font-normal">($' + usd + ' USD)</span>';
+    }
+
+    function getAllProducts() {
+      var all = [];
+      for (var i = 0; i < storeData.sections.length; i++) {
+        var prods = storeData.sections[i].products || [];
+        for (var j = 0; j < prods.length; j++) { all.push(prods[j]); }
+      }
+      return all;
+    }
+
+    function findProductById(pId) {
+      var all = getAllProducts();
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].id === Number(pId)) return all[i];
+      }
+      return null;
     }
 
     function showToast(msg, type) {
       var t = document.getElementById('toast');
+      if (!t) return;
       t.textContent = msg;
-      if (type === 'error') t.style.background = '#ef4444';
-      else t.style.background = 'var(--accent)';
+      t.style.background = (type === 'error') ? '#ef4444' : 'var(--accent)';
       t.classList.add('show');
       setTimeout(function() { t.classList.remove('show'); }, 2500);
     }
 
     function openModal(id) {
-      document.getElementById(id).classList.add('visible');
-      document.body.style.overflow = 'hidden';
+      var el = document.getElementById(id);
+      if (el) { el.classList.add('visible'); document.body.style.overflow = 'hidden'; }
     }
 
     function closeAllModals() {
-      document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('visible'); });
+      var modals = document.querySelectorAll('.modal-overlay');
+      for (var i = 0; i < modals.length; i++) { modals[i].classList.remove('visible'); }
       document.body.style.overflow = '';
     }
 
@@ -261,45 +309,74 @@
 
     function filterBySection(index) {
       activeSectionTab = index;
-      document.getElementById('catalogTitle').innerText = index === -1 ? 'TODOS LOS PRODUCTOS' : storeData.sections[index].name.toUpperCase();
+      var title = (index === -1) ? 'TODOS LOS PRODUCTOS' : storeData.sections[index].name.toUpperCase();
+      document.getElementById('catalogTitle').innerText = title;
       renderCatalog();
     }
 
-    // ==========================================
-    // CARGA DE DATOS
-    // ==========================================
+    /* =============================================
+       LOGO
+       ============================================= */
+    (function() {
+      var img = document.getElementById('logoImg');
+      if (img) {
+        img.onload = function() { console.log('Logo cargado correctamente.'); };
+        img.onerror = function() {
+          console.warn('No se pudo cargar el logo. Se muestra texto de respaldo.');
+          this.style.display = 'none';
+        };
+      }
+    })();
+
+    /* =============================================
+       CARGA DE DATOS
+       ============================================= */
     async function fetchStoreData() {
-      if (!supabaseClient) return;
+      if (!supabaseClient) {
+        console.warn('Supabase no disponible.');
+        document.getElementById('connWarning').classList.add('show');
+        sanitizeData(); renderSidebar(); renderFeatured(); renderCatalog(); renderAdminSidebar();
+        return;
+      }
+
       try {
         var settingsResp = await supabaseClient.from('peaky_settings').select('*').eq('id', 1).single();
-        var settings = settingsResp.data;
-        if (settings) {
-          storeData.whatsappNumber = storeData.whatsappNumber || settings.whatsappNumber || '';
+        if (settingsResp.data) {
+          var settings = settingsResp.data;
+          storeData.whatsappNumber = settings.whatsappNumber || '';
           storeData.exchangeRate = Number(settings.exchangeRate) || 300;
           if (settings.shippingZones) {
-            storeData.shippingZones = typeof settings.shippingZones === 'string' ? JSON.parse(settings.shippingZones) : settings.shippingZones;
+            storeData.shippingZones = (typeof settings.shippingZones === 'string') ? JSON.parse(settings.shippingZones) : settings.shippingZones;
           }
         }
+
         var secsResp = await supabaseClient.from('peaky_sections').select('*').order('id', { ascending: true });
         var prodsResp = await supabaseClient.from('peaky_products').select('*');
-        var secs = secsResp.data;
-        var prods = prodsResp.data;
+        var secs = secsResp.data || [];
+        var prods = prodsResp.data || [];
+
         storeData.sections = [];
-        if (secs) {
-          secs.forEach(function(s) {
-            s.products = prods ? prods.filter(function(p) { return p.section_id === s.id; }) : [];
-            storeData.sections.push(s);
-          });
+        for (var i = 0; i < secs.length; i++) {
+          var sec = secs[i];
+          sec.products = [];
+          for (var j = 0; j < prods.length; j++) {
+            if (prods[j].section_id === sec.id) sec.products.push(prods[j]);
+          }
+          storeData.sections.push(sec);
         }
+
+        document.getElementById('connWarning').classList.remove('show');
+
       } catch(e) {
         console.error("Error cargando datos:", e);
+        document.getElementById('connWarning').classList.add('show');
       }
-      sanitizeData();
-      renderSidebar();
-      renderFeatured();
-      renderCatalog();
-      renderAdminSidebar();
-      if (document.getElementById('adminModal').classList.contains('visible')) showAdminPage(currentAdminPage);
+
+      sanitizeData(); renderSidebar(); renderFeatured(); renderCatalog(); renderAdminSidebar();
+
+      if (document.getElementById('adminModal').classList.contains('visible')) {
+        showAdminPage(currentAdminPage);
+      }
     }
 
     async function uploadImage(file) {
@@ -313,9 +390,9 @@
       return urlData.data.publicUrl;
     }
 
-    // ==========================================
-    // AUTENTICACIÓN
-    // ==========================================
+    /* =============================================
+       AUTENTICACIÓN
+       ============================================= */
     function checkAuth() {
       if (!supabaseClient) return;
       supabaseClient.auth.onAuthStateChange(function(event, session) {
@@ -331,55 +408,52 @@
           email: document.getElementById('loginUser').value,
           password: document.getElementById('loginPass').value
         });
-        closeAllModals();
-        openModal('adminModal');
-        showAdminPage('dashboard');
-        renderAdminSidebar();
+        closeAllModals(); openModal('adminModal'); showAdminPage('dashboard'); renderAdminSidebar();
         showToast('Bienvenida al Panel', 'success');
-      } catch (e) {
+      } catch(e) {
         document.getElementById('loginError').classList.remove('hidden');
       }
     }
 
     async function handleLogout() {
       if (supabaseClient) await supabaseClient.auth.signOut();
-      closeAllModals();
-      showToast('Sesión cerrada');
+      closeAllModals(); showToast('Sesión cerrada');
     }
 
     function renderAdminSidebar() {
       var el = document.getElementById('sidebarAdmin');
       if (isLoggedIn) {
-        el.innerHTML = '<button onclick="toggleSidebar(); openModal(\'adminModal\'); showAdminPage(\'dashboard\');" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk"><i class="fas fa-cog w-5"></i> Panel Admin</button>';
+        el.innerHTML = '<button onclick="toggleSidebar();openModal(\'adminModal\');showAdminPage(\'dashboard\');" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk"><i class="fas fa-cog w-5"></i> Panel Admin</button>';
       } else {
-        el.innerHTML = '<button onclick="toggleSidebar(); openModal(\'loginModal\');" class="w-full text-left p-3 rounded-lg border border-gray-700 hover:border-yolk/50 transition font-medium flex items-center gap-3 text-gray-600 hover:text-yolk"><i class="fas fa-lock w-5"></i> Admin</button>';
+        el.innerHTML = '<button onclick="toggleSidebar();openModal(\'loginModal\');" class="w-full text-left p-3 rounded-lg border border-gray-700 hover:border-yolk/50 transition font-medium flex items-center gap-3 text-gray-600 hover:text-yolk"><i class="fas fa-lock w-5"></i> Admin</button>';
       }
     }
 
-    // ==========================================
-    // SIDEBAR
-    // ==========================================
+    /* =============================================
+       SIDEBAR
+       ============================================= */
     function renderSidebar() {
       var menu = document.getElementById('sidebarMenu');
-      var html = '<button onclick="filterBySection(-1); toggleSidebar();" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk mb-2"><i class="fas fa-fire w-5"></i> Todos</button>';
-      storeData.sections.forEach(function(s, i) {
-        html += '<button onclick="filterBySection(' + i + '); toggleSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-yolk/10 hover:text-yolk transition font-medium flex items-center gap-3 text-gray-500"><i class="' + (s.icon || 'fas fa-utensils') + ' w-5 text-yolk"></i> ' + s.name + '</button>';
-      });
+      var html = '<button onclick="filterBySection(-1);toggleSidebar();" class="w-full text-left p-3 rounded-lg bg-yolk/10 border border-yolk/30 hover:bg-yolk hover:text-black transition font-bold flex items-center gap-3 text-yolk mb-2"><i class="fas fa-fire w-5"></i> Todos</button>';
+      for (var i = 0; i < storeData.sections.length; i++) {
+        var s = storeData.sections[i];
+        html += '<button onclick="filterBySection(' + i + ');toggleSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-yolk/10 hover:text-yolk transition font-medium flex items-center gap-3 text-gray-500"><i class="' + (s.icon || 'fas fa-utensils') + ' w-5 text-yolk"></i> ' + s.name + '</button>';
+      }
       menu.innerHTML = html;
     }
 
-    // ==========================================
-    // DESTACADOS: BILLAR + OFERTAS
-    // ==========================================
+    /* =============================================
+       DESTACADOS
+       ============================================= */
     function renderFeatured() {
       var grid = document.getElementById('featuredScroll');
       var rate = Number(storeData.exchangeRate) || 300;
-
       var billarUsdEl = document.getElementById('billarUsd');
       if (billarUsdEl) billarUsdEl.innerText = '($' + (600 / rate).toFixed(2) + ' USD)';
 
-      // 1. El Billar
-      var html = '<div class="featured-card snap-start relative bg-dark-card flex-shrink-0">';
+      var html = '';
+
+      html += '<div class="featured-card snap-start relative bg-dark-card">';
       html += '<img src="https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover opacity-70" onerror="this.src=\'https://picsum.photos/600/400?grayscale\'">';
       html += '<div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>';
       html += '<div class="absolute bottom-0 left-0 right-0 p-4 border-t-2 border-yolk">';
@@ -389,16 +463,10 @@
       html += '<button onclick="openBillarModal()" class="w-full bg-yolk text-black py-2 rounded font-bold text-sm active:scale-95 transition">RESERVAR HORA</button>';
       html += '</div></div>';
 
-      // 2. Ofertas dinámicas
-      var featured = [];
-      storeData.sections.forEach(function(s) {
-        s.products.forEach(function(p) {
-          if (p.is_featured === true) featured.push(p);
-        });
-      });
-
-      featured.forEach(function(p) {
-        html += '<div class="featured-card snap-start relative bg-dark-card flex-shrink-0">';
+      var featured = getAllProducts().filter(function(p) { return p.is_featured === true; });
+      for (var i = 0; i < featured.length; i++) {
+        var p = featured[i];
+        html += '<div class="featured-card snap-start relative bg-dark-card">';
         html += '<img src="' + (p.image_url || 'https://picsum.photos/400/400') + '" class="w-full h-full object-cover opacity-80">';
         html += '<div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>';
         html += '<div class="absolute bottom-0 left-0 right-0 p-4">';
@@ -408,23 +476,22 @@
         html += '<div class="text-sm">' + formatPrice(p.priceCUP) + '</div>';
         html += '<button onclick="addToCart(' + p.id + ')" class="bg-yolk text-black px-3 py-1 rounded font-bold text-xs active:scale-95 transition">PEDIR</button>';
         html += '</div></div></div>';
-      });
+      }
 
-      grid.innerHTML = html || '<p class="text-gray-600 p-4">Aún no hay ofertas destacadas.</p>';
+      grid.innerHTML = html;
     }
 
-    // ==========================================
-    // MODAL BILLAR
-    // ==========================================
+    /* =============================================
+       MODAL BILLAR
+       ============================================= */
     function openBillarModal() {
       var today = new Date().toISOString().split('T')[0];
       document.getElementById('billarDate').setAttribute('min', today);
-
       var sel = document.getElementById('billarTime');
       sel.innerHTML = '<option value="">Selecciona hora</option>';
       for (var i = 8; i <= 22; i++) {
-        var ampm = i >= 12 ? 'PM' : 'AM';
-        var hour12 = i > 12 ? i - 12 : (i === 0 ? 12 : i);
+        var ampm = (i >= 12) ? 'PM' : 'AM';
+        var hour12 = (i > 12) ? (i - 12) : i;
         sel.innerHTML += '<option value="' + hour12 + ':00 ' + ampm + '">' + hour12 + ':00 ' + ampm + '</option>';
       }
       openModal('billarModal');
@@ -435,39 +502,34 @@
       var phone = document.getElementById('billarPhone').value.trim();
       var dateRaw = document.getElementById('billarDate').value;
       var time = document.getElementById('billarTime').value;
-
       if (!name || !phone || !dateRaw || !time) { showToast('Completa todos los datos', 'error'); return; }
-
-      // CORRECCIÓN: month: 'long' (faltaba la comilla)
       var formattedDate = new Date(dateRaw + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
       var rate = Number(storeData.exchangeRate) || 300;
-      var msg = '\uD83C\uDFB1 *Reserva de Billar - Peaky Pan*\n\n\uuD83D\uDC64 *Cliente:* ' + name + '\n\uuD83D\uDCDE *Tel\u00E9fono:* ' + phone + '\n\uD83D\uDCC5 *D\u00EDa:* ' + formattedDate + '\n\uD83D\uDD52 *Hora:* ' + time + '\n\n\uD83D\uDCB0 *Precio:* 600 CUP ($' + (600 / rate).toFixed(2) + ' USD) la hora\n\n*Por favor confirmar su reserva.*';
-
+      var msg = '*Reserva de Billar - Peaky Pan*\n\n*Cliente:* ' + name + '\n*Teléfono:* ' + phone + '\n*Día:* ' + formattedDate + '\n*Hora:* ' + time + '\n\n*Precio:* 600 CUP ($' + (600 / rate).toFixed(2) + ' USD) la hora\n\n*Por favor confirmar su reserva.*';
       var phoneClean = (storeData.whatsappNumber || '').replace(/[^0-9]/g, '');
+      if (!phoneClean) { showToast('Configura el número de WhatsApp en el panel admin', 'error'); return; }
       window.open('https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(msg), '_blank');
       closeAllModals();
     }
 
-    // ==========================================
-    // CATÁLOGO
-    // ==========================================
+    /* =============================================
+       CATÁLOGO
+       ============================================= */
     function renderCatalog() {
       var grid = document.getElementById('productGrid');
       var secs = storeData.sections || [];
-      var showS = activeSectionTab === -1 ? secs : (secs[activeSectionTab] ? [secs[activeSectionTab]] : []);
+      var showS = (activeSectionTab === -1) ? secs : (secs[activeSectionTab] ? [secs[activeSectionTab]] : []);
       var html = '';
-
-      showS.forEach(function(s) {
-        if (!s.products || s.products.length === 0) return;
-
+      for (var i = 0; i < showS.length; i++) {
+        var s = showS[i];
+        if (!s.products || s.products.length === 0) continue;
         if (activeSectionTab === -1) {
           html += '<div class="col-span-2 mt-4 mb-2"><h3 class="font-display text-lg text-yolk flex items-center gap-2"><i class="' + (s.icon || 'fas fa-utensils') + '"></i> ' + s.name + '</h3></div>';
         }
-
-        s.products.forEach(function(p) {
+        for (var j = 0; j < s.products.length; j++) {
+          var p = s.products[j];
           var qty = Number(p.quantity) || 0;
           var isAv = qty > 0;
-
           html += '<div class="product-card flex flex-col">';
           html += '<img src="' + (p.image_url || 'https://picsum.photos/400/400') + '" class="w-full h-36 object-cover">';
           html += '<div class="p-3 flex flex-col flex-grow">';
@@ -480,507 +542,67 @@
             html += '<button disabled class="w-full mt-2 py-2 rounded bg-gray-800 text-gray-600 font-bold text-xs cursor-not-allowed">AGOTADO</button>';
           }
           html += '</div></div>';
-        });
-      });
-
-      grid.innerHTML = html || '<p class="col-span-2 text-center text-gray-700 py-12">No hay productos en esta sección.</p>';
+        }
+      }
+      if (!html) html = '<p class="col-span-2 text-center text-gray-700 py-12">No hay productos en esta sección.</p>';
+      grid.innerHTML = html;
     }
 
-    // ==========================================
-    // CARRITO
-    // ==========================================
+    /* =============================================
+       CARRITO
+       ============================================= */
     function addToCart(pId) {
-      // CORRECCIÓN: faltaba cerrar flatMap y añadir .find()
-      var allProducts = [];
-      storeData.sections.forEach(function(s) {
-        s.products.forEach(function(p) { allProducts.push(p); });
-      });
-      var p = allProducts.find(function(x) { return x.id === Number(pId); });
+      var p = findProductById(pId);
       if (!p) return;
-
       var current = 0;
-      var existing = cart.find(function(x) { return x.id === p.id; });
-      if (existing) current = existing.quantity;
-
-      if (current >= (Number(p.quantity) || 0)) {
-        showToast('Sin stock', 'error');
-        return;
-      }
-
-      if (existing) {
-        existing.quantity++;
-      } else {
-        cart.push({ id: p.id, name: p.name, priceCUP: Number(p.priceCUP) || 0, image: p.image_url, quantity: 1 });
-      }
-      updateCartBadge();
-      showToast('Añadido al pedido', 'success');
+      for (var i = 0; i < cart.length; i++) { if (cart[i].id === p.id) { current = cart[i].quantity; break; } }
+      if (current >= (Number(p.quantity) || 0)) { showToast('Sin stock', 'error'); return; }
+      var found = false;
+      for (var i = 0; i < cart.length; i++) { if (cart[i].id === p.id) { cart[i].quantity++; found = true; break; } }
+      if (!found) cart.push({ id: p.id, name: p.name, priceCUP: Number(p.priceCUP) || 0, image: p.image_url, quantity: 1 });
+      updateCartBadge(); showToast('Añadido al pedido', 'success');
     }
 
-    function openCart() {
-      openModal('cartModal');
-      renderCartModal();
-    }
+    function openCart() { openModal('cartModal'); renderCartModal(); }
 
     function updateCartBadge() {
-      var t = cart.reduce(function(s, i) { return s + i.quantity; }, 0);
+      var t = 0;
+      for (var i = 0; i < cart.length; i++) t += cart[i].quantity;
       var b = document.getElementById('cartBadge');
       if (t > 0) { b.textContent = t; b.classList.remove('hidden'); }
       else { b.classList.add('hidden'); }
     }
 
-    function updateQuantity(pId, d) {
-      var item = cart.find(function(x) { return x.id === pId; });
-      if (!item) return;
-      item.quantity += d;
-      if (item.quantity <= 0) { cart = cart.filter(function(x) { return x.id !== pId; }); }
-      renderCartModal();
-      updateCartBadge();
+    function updateQuantity(pId, delta) {
+      for (var i = 0; i < cart.length; i++) {
+        if (cart[i].id === pId) { cart[i].quantity += delta; if (cart[i].quantity <= 0) cart.splice(i, 1); break; }
+      }
+      renderCartModal(); updateCartBadge();
     }
 
     function renderCartModal() {
       var cI = document.getElementById('cartItems');
       var cF = document.getElementById('checkoutForm');
-
       if (cart.length === 0) {
         cI.innerHTML = '<p class="text-center text-gray-700 py-8">Tu pedido está vacío</p>';
-        cF.classList.add('hidden');
-        return;
+        cF.classList.add('hidden'); return;
       }
-
-      var h = '';
-      var tCUP = 0;
-
-      cart.forEach(function(i) {
-        var sub = (Number(i.priceCUP) || 0) * i.quantity;
+      var h = '', tCUP = 0;
+      for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        var sub = (Number(item.priceCUP) || 0) * item.quantity;
         tCUP += sub;
-
         h += '<div class="flex gap-3 items-center border-b border-gray-800 pb-3">';
-        h += '<img src="' + (i.image || 'https://picsum.photos/100/100') + '" class="w-14 h-14 rounded-lg object-cover">';
-        h += '<div class="flex-grow">';
-        h += '<h4 class="font-bold text-sm text-white">' + i.name + '</h4>';
-        h += '<p class="text-xs text-gray-500">' + Math.round(i.priceCUP).toLocaleString() + ' CUP x ' + i.quantity + '</p>';
-        h += '</div>';
+        h += '<img src="' + (item.image || 'https://picsum.photos/100/100') + '" class="w-14 h-14 rounded-lg object-cover">';
+        h += '<div class="flex-grow"><h4 class="font-bold text-sm text-white">' + item.name + '</h4>';
+        h += '<p class="text-xs text-gray-500">' + Math.round(item.priceCUP).toLocaleString() + ' CUP x ' + item.quantity + '</p></div>';
         h += '<div class="flex items-center gap-2">';
-        h += '<button onclick="updateQuantity(' + i.id + ', -1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">-</button>';
-        h += '<span class="font-bold w-4 text-center text-sm text-white">' + i.quantity + '</span>';
-        h += '<button onclick="updateQuantity(' + i.id + ', 1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">+</button>';
+        h += '<button onclick="updateQuantity(' + item.id + ',-1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">-</button>';
+        h += '<span class="font-bold w-4 text-center text-sm text-white">' + item.quantity + '</span>';
+        h += '<button onclick="updateQuantity(' + item.id + ',1)" class="w-7 h-7 rounded bg-gray-800 flex items-center justify-center text-xs text-white">+</button>';
         h += '</div></div>';
-      });
-
+      }
       cI.innerHTML = h;
-
       var sel = document.getElementById('checkMunicipality');
       sel.innerHTML = '<option value="">Selecciona el municipio</option>';
-      (storeData.shippingZones || []).forEach(function(z) {
-        sel.innerHTML += '<option value="' + z.name + '" data-cost="' + z.cost + '">' + z.name + ' (+' + Math.round(z.cost).toLocaleString() + ' CUP)</option>';
-      });
-
-      function updateTotal() {
-        var cost = Number(sel.options[sel.selectedIndex].dataset.cost) || 0;
-        var total = tCUP + cost;
-        // CORRECCIÓN: usaba totalCUP que no existía
-        document.getElementById('cartTotalSummary').innerHTML =
-          '<p class="text-sm text-gray-400">Subtotal: ' + Math.round(tCUP).toLocaleString() + ' CUP ($' + getUSD(tCUP).toFixed(2) + ' USD)</p>' +
-          (cost > 0 ? '<p class="text-sm text-gray-400">Envío: ' + Math.round(cost).toLocaleString() + ' CUP</p>' : '') +
-          '<p class="font-bold text-xl text-yolk mt-1">TOTAL: ' + Math.round(total).toLocaleString() + ' CUP ($' + getUSD(total).toFixed(2) + ' USD)</p>';
-      }
-
-      // CORRECCIÓN: asignar la función, no llamarla
-      sel.onchange = updateTotal;
-      updateTotal();
-      cF.classList.remove('hidden');
-    }
-
-    async function sendWhatsappOrder() {
-      var name = document.getElementById('checkName').value.trim();
-      var phone = document.getElementById('checkPhone').value.trim();
-      var address = document.getElementById('checkAddress').value.trim();
-      var muniS = document.getElementById('checkMunicipality');
-      var muni = muniS.value;
-      var shipCost = Number(muniS.options[muniS.selectedIndex].dataset.cost) || 0;
-      var pay = document.getElementById('checkPayment').value;
-      var notes = document.getElementById('checkNotes').value.trim();
-
-      if (!name || !phone || !address || !muni) {
-        showToast('Completa todos los datos', 'error');
-        return;
-      }
-
-      var msg = '\uD83C\uDF54 *Pedido Peaky Pan*\n\n\uuD83D\uDC64 *Cliente:* ' + name + '\n\uuD83D\uDCDE *Tel:* ' + phone + '\n\uD83D\uDCCD *Dir:* ' + address + ', ' + muni + '\n\uD83D\uDCB3 *Pago:* ' + pay + '\n';
-      if (notes) msg += '\uD83D\uDCDD *Notas:* ' + notes + '\n';
-      msg += '\n\uD83D\uDCE6 *Productos:*\n';
-
-      var tCUP = 0;
-      var updates = [];
-
-      cart.forEach(function(i) {
-        var sub = (Number(i.priceCUP) || 0) * i.quantity;
-        tCUP += sub;
-        msg += '  \u2022 ' + i.name + ' x' + i.quantity + ' \u2014 ' + Math.round(sub).toLocaleString() + ' CUP ($' + getUSD(sub).toFixed(2) + ' USD)\n';
-
-        // CORRECCIÓN: mismo error de flatMap/find
-        var allProducts = [];
-        storeData.sections.forEach(function(s) {
-          s.products.forEach(function(p) { allProducts.push(p); });
-        });
-        var p = allProducts.find(function(x) { return x.id === i.id; });
-        if (p) {
-          p.quantity = Math.max(0, (Number(p.quantity) || 0) - i.quantity);
-          updates.push(supabaseClient.from('peaky_products').update({ quantity: p.quantity }).eq('id', p.id));
-        }
-      });
-
-      var totalCUP = tCUP + shipCost;
-      msg += '\n\uD83D\uDE9A *Envío:* ' + Math.round(shipCost).toLocaleString() + ' CUP\n\n\uD83D\uDCB0 *TOTAL:* ' + Math.round(totalCUP).toLocaleString() + ' CUP ($' + getUSD(totalCUP).toFixed(2) + ' USD)';
-
-      try {
-        if (updates.length > 0) await Promise.all(updates);
-        await fetchStoreData();
-      } catch(e) { console.error(e); }
-
-      var phoneClean = (storeData.whatsappNumber || '').replace(/[^0-9]/g, '');
-      window.open('https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(msg), '_blank');
-
-      cart = [];
-      updateCartBadge();
-      closeAllModals();
-    }
-
-    // ==========================================
-    // ADMIN - DASHBOARD
-    // ==========================================
-    function showAdminPage(pg) {
-      currentAdminPage = pg;
-      editingSectionId = null;
-      editingProductId = null;
-
-      document.querySelectorAll('.admin-tab').forEach(function(b) {
-        var isA = b.dataset.page === pg;
-        b.classList.toggle('bg-yolk/20', isA);
-        b.classList.toggle('text-yolk', isA);
-        b.classList.toggle('text-gray-500', !isA);
-      });
-
-      var c = document.getElementById('adminContent');
-      if (pg === 'dashboard') renderDashboard(c);
-      else if (pg === 'sections') renderSectionList(c);
-      else if (pg === 'products') renderProductList(c);
-      else if (pg === 'settings') renderSettings(c);
-    }
-
-    function renderDashboard(el) {
-      var total = 0;
-      storeData.sections.forEach(function(s) { total += (s.products || []).length; });
-      // CORRECCIÓN: eliminado </div> extra
-      el.innerHTML =
-        '<div class="grid grid-cols-2 gap-4">' +
-          '<div class="bg-[#111] rounded-lg p-5 border border-gray-800">' +
-            '<p class="text-gray-600 text-xs">Secciones</p>' +
-            '<p class="text-3xl font-bold text-yolk">' + storeData.sections.length + '</p>' +
-          '</div>' +
-          '<div class="bg-[#111] rounded-lg p-5 border border-gray-800">' +
-            '<p class="text-gray-600 text-xs">Productos</p>' +
-            '<p class="text-3xl font-bold text-yolk">' + total + '</p>' +
-          '</div>' +
-          '<div class="col-span-2 bg-[#111] rounded-lg p-5 border border-gray-800">' +
-            '<p class="text-xs text-gray-600 mb-1">Tasa de cambio actual</p>' +
-            '<p class="text-2xl font-bold text-yolk">1 USD = ' + (storeData.exchangeRate || 300) + ' CUP</p>' +
-          '</div>' +
-        '</div>';
-    }
-
-    // ==========================================
-    // ADMIN - SECCIONES
-    // ==========================================
-    function renderSectionList(el) {
-      var l = '';
-      storeData.sections.forEach(function(s) {
-        // CORRECCIÓN: eliminado </div> extra
-        l += '<div class="bg-[#111] rounded-lg p-4 border border-gray-800 flex justify-between items-center">' +
-          '<div class="flex items-center gap-3">' +
-            '<i class="' + (s.icon || 'fas fa-utensils') + ' text-yolk"></i>' +
-            '<span class="font-bold text-sm text-white">' + s.name + '</span>' +
-          '</div>' +
-          '<div class="flex gap-2">' +
-            '<button onclick="renderSectionForm(' + s.id + ')" class="px-3 py-1.5 rounded bg-gray-800 text-xs font-bold text-white">Editar</button>' +
-            '<button onclick="deleteSection(' + s.id + ')" class="px-3 py-1.5 rounded bg-red-900/30 text-red-400 text-xs font-bold">X</button>' +
-          '</div>' +
-        '</div>';
-      });
-      el.innerHTML = '<button onclick="renderSectionForm(null)" class="w-full mb-4 px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i>Nueva Sección</button><div class="space-y-3">' + l + '</div>';
-    }
-
-    function renderSectionForm(id) {
-      editingSectionId = id;
-      var s = id ? storeData.sections.find(function(x) { return x.id === Number(id); }) : null;
-      document.getElementById('adminContent').innerHTML =
-        '<button onclick="showAdminPage(\'sections\')" class="text-gray-500 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button>' +
-        '<h3 class="font-display text-lg text-yolk mb-4">' + (s ? 'EDITAR' : 'NUEVA') + ' SECCI\u00D3N</h3>' +
-        '<div class="space-y-3">' +
-          '<div><label class="text-xs text-gray-600">Nombre *</label><input id="sf_name" type="text" value="' + (s ? s.name : '') + '" class="admin-input mt-1"></div>' +
-          '<div><label class="text-xs text-gray-600">Icono (ej: fas fa-burger)</label><input id="sf_icon" type="text" value="' + (s ? s.icon : 'fas fa-utensils') + '" class="admin-input mt-1"></div>' +
-          '<button onclick="saveSection()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR</button>' +
-        '</div>';
-    }
-
-    async function saveSection() {
-      var name = document.getElementById('sf_name').value.trim();
-      var icon = document.getElementById('sf_icon').value.trim() || 'fas fa-utensils';
-      if (!name) return showToast('Nombre obligatorio', 'error');
-
-      if (editingSectionId) {
-        await supabaseClient.from('peaky_sections').update({ name: name, icon: icon }).eq('id', editingSectionId);
-      } else {
-        await supabaseClient.from('peaky_sections').insert({ name: name, icon: icon });
-      }
-      showToast('Guardado', 'success');
-      await fetchStoreData();
-      showAdminPage('sections');
-    }
-
-    async function deleteSection(id) {
-      if (!confirm('¿Eliminar sección y sus productos?')) return;
-      await supabaseClient.from('peaky_sections').delete().eq('id', id);
-      showToast('Eliminada', 'success');
-      await fetchStoreData();
-      showAdminPage('sections');
-    }
-
-    // ==========================================
-    // ADMIN - PRODUCTOS
-    // ==========================================
-    function renderProductList(el) {
-      if (storeData.sections.length === 0) {
-        el.innerHTML = '<p class="text-gray-500 text-center py-8">Crea una sección primero.</p>';
-        return;
-      }
-      if (adminSelectedSection >= storeData.sections.length) adminSelectedSection = 0;
-
-      var sH = '';
-      storeData.sections.forEach(function(s, i) {
-        sH += '<option value="' + i + '" ' + (adminSelectedSection === i ? 'selected' : '') + '>' + s.name + '</option>';
-      });
-
-      var sec = storeData.sections[adminSelectedSection];
-      var pH = '';
-
-      if (sec && sec.products) {
-        sec.products.forEach(function(p) {
-          // CORRECCIÓN: eliminado </div> extra
-          pH += '<div class="bg-[#111] rounded-lg border border-gray-800 overflow-hidden">' +
-            '<img src="' + (p.image_url || 'https://picsum.photos/400/400') + '" class="w-full h-24 object-cover">' +
-            '<div class="p-3">' +
-              '<h4 class="font-bold text-xs text-white truncate">' + p.name + '</h4>' +
-              '<p class="text-sm text-white mt-1">' + Math.round(p.priceCUP).toLocaleString() + ' CUP <span class="text-[10px] text-yolk">($' + getUSD(p.priceCUP).toFixed(2) + ' USD)</span></p>' +
-              '<div class="flex items-center justify-between mt-2">' +
-                '<span class="text-[10px] ' + (p.is_featured ? 'text-yolk font-bold' : 'text-gray-600') + '"><i class="fas fa-star mr-1"></i> Destacado</span>' +
-                '<div class="flex gap-2">' +
-                  '<button onclick="renderProductForm(' + sec.id + ', ' + p.id + ')" class="flex-1 py-1.5 rounded bg-gray-800 font-bold text-[11px] text-white">Editar</button>' +
-                  '<button onclick="deleteProduct(' + p.id + ')" class="flex-1 py-1.5 rounded bg-red-900/30 text-red-400 font-bold text-[11px]">X</button>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-        });
-      }
-
-      // CORRECCIÓN: eliminado </div> extra al final
-      el.innerHTML =
-        '<div class="flex flex-col gap-3 mb-4">' +
-          '<select id="adminSectionSelect" class="admin-input text-sm">' + sH + '</select>' +
-          '<button onclick="renderProductForm(' + sec.id + ', null)" class="w-full px-4 py-3 rounded-lg font-bold text-black bg-yolk text-sm"><i class="fas fa-plus mr-2"></i> NUEVO PRODUCTO</button>' +
-        '</div>' +
-        '<div class="grid grid-cols-1 gap-3">' + pH + '</div>';
-
-      setTimeout(function() {
-        var sel = document.getElementById('adminSectionSelect');
-        if (sel) {
-          sel.onchange = function() {
-            adminSelectedSection = parseInt(this.value);
-            renderProductList(document.getElementById('adminContent'));
-          };
-        }
-      }, 50);
-    }
-
-    function renderProductForm(secId, prodId) {
-      editingProductSectionId = secId;
-      editingProductId = prodId;
-      var s = storeData.sections.find(function(x) { return x.id === Number(secId); });
-      var p = prodId ? (s ? s.products.find(function(x) { return x.id === Number(prodId); }) : null) : null;
-
-      // CORRECCIÓN: ID consistente pf_quantity, y un solo atributo class
-      document.getElementById('adminContent').innerHTML =
-        '<button onclick="showAdminPage(\'products\')" class="text-gray-500 hover:text-white mb-4 text-sm"><i class="fas fa-arrow-left mr-2"></i>Volver</button>' +
-        '<h3 class="font-display text-lg text-yolk mb-4">' + (p ? 'EDITAR' : 'NUEVO') + ' PRODUCTO</h3>' +
-        '<div class="space-y-3">' +
-          '<div><label class="text-xs text-gray-600">Nombre *</label><input id="pf_name" type="text" value="' + (p ? p.name : '') + '" class="admin-input mt-1"></div>' +
-          '<div class="grid grid-cols-2 gap-3">' +
-            '<div><label class="text-xs text-gray-600">Precio (CUP) *</label><input id="pf_priceCUP" type="number" value="' + (p ? p.priceCUP : 0) + '" class="admin-input mt-1"></div>' +
-            '<div><label class="text-xs text-gray-600">Stock *</label><input id="pf_quantity" type="number" value="' + (p ? p.quantity : 0) + '" class="admin-input mt-1"></div>' +
-          '</div>' +
-          '<div>' +
-            '<label class="text-xs text-gray-600">Imagen</label>' +
-            '<input type="file" id="image_input_file" accept="image/*" class="admin-input text-xs">' +
-            (p && p.image_url ? '<img src="' + p.image_url + '" class="w-full h-28 object-contain rounded mt-2 bg-black">' : '') +
-          '</div>' +
-          '<div class="flex items-center gap-3 p-3 bg-[#111] rounded-lg border border-gray-800 cursor-pointer" onclick="document.getElementById(\'pf_featured\').click()">' +
-            '<input type="checkbox" id="pf_featured" ' + (p && p.is_featured ? 'checked' : '') + ' class="w-5 h-5 accent-yellow-400 cursor-pointer">' +
-            '<label for="pf_featured" class="text-sm text-gray-400 cursor-pointer"><i class="fas fa-star text-yolk mr-1"></i> Mostrar en sección de Ofertas</label>' +
-          '</div>' +
-          '<button onclick="saveProduct()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR PRODUCTO</button>' +
-        '</div>';
-    }
-
-    async function saveProduct() {
-      var name = document.getElementById('pf_name').value.trim();
-      var priceCUP = Number(document.getElementById('pf_priceCUP').value) || 0;
-      var quantity = Number(document.getElementById('pf_quantity').value) || 0;
-      var file = document.getElementById('image_input_file').files[0];
-      var is_featured = document.getElementById('pf_featured').checked;
-
-      if (!name || priceCUP <= 0) {
-        showToast('Completa nombre y precio', 'error');
-        return;
-      }
-
-      // CORRECCIÓN: paréntesis bien cerrados y IDs consistentes
-      var imageUrl = '';
-      if (editingProductId) {
-        var allProducts = [];
-        storeData.sections.forEach(function(s) {
-          s.products.forEach(function(p) { allProducts.push(p); });
-        });
-        var existing = allProducts.find(function(p) { return p.id === editingProductId; });
-        imageUrl = existing ? (existing.image_url || '') : '';
-      }
-
-      if (file) {
-        imageUrl = await uploadImage(file);
-        if (!imageUrl) return;
-      }
-      if (!imageUrl) imageUrl = 'https://picsum.photos/seed/' + Date.now() + '/400/400';
-
-      var payload = {
-        name: name,
-        priceCUP: priceCUP,
-        quantity: quantity,
-        image_url: imageUrl,
-        section_id: Number(editingProductSectionId),
-        is_featured: is_featured
-      };
-
-      if (editingProductId) {
-        await supabaseClient.from('peaky_products').update(payload).eq('id', editingProductId);
-      } else {
-        await supabaseClient.from('peaky_products').insert(payload);
-      }
-
-      showToast('¡Producto guardado!', 'success');
-      await fetchStoreData();
-      showAdminPage('products');
-    }
-
-    async function deleteProduct(id) {
-      if (!confirm('¿Eliminar este producto?')) return;
-      await supabaseClient.from('peaky_products').delete().eq('id', id);
-      showToast('Eliminado', 'success');
-      await fetchStoreData();
-      renderProductList(document.getElementById('adminContent'));
-    }
-
-    // ==========================================
-    // ADMIN - CONFIGURACIÓN
-    // ==========================================
-    function renderSettings(el) {
-      var zonesHtml = '';
-      (storeData.shippingZones || []).forEach(function(z, i) {
-        // CORRECCIÓN: eliminado </div> extra
-        zonesHtml += '<div class="flex items-center justify-between bg-black p-2 rounded border border-gray-800">' +
-          '<span class="text-sm text-white">' + z.name + '</span>' +
-          '<div class="flex items-center gap-3">' +
-            '<span class="text-yolk font-bold text-sm">' + Math.round(z.cost).toLocaleString() + ' CUP</span>' +
-            '<button onclick="removeShippingZone(' + i + ')" class="text-red-400"><i class="fas fa-trash text-xs"></i></button>' +
-          '</div>' +
-        '</div>';
-      });
-
-      // CORRECCIÓN: estructura de divs corregida, sin tags sueltos ni extra
-      el.innerHTML =
-        '<div class="space-y-4">' +
-          '<div class="bg-[#111] rounded-lg p-4 border border-gray-800 space-y-4">' +
-            '<h3 class="font-display text-sm text-yolk">VENTAS Y MONEDA</h3>' +
-            '<div><label class="text-xs text-gray-600">WhatsApp</label><input id="st_whatsapp" type="text" value="' + (storeData.whatsappNumber || '') + '" class="admin-input mt-1"></div>' +
-            '<div class="p-3 bg-black rounded-lg border border-yolk/30">' +
-              '<label class="text-xs text-yolk font-bold block mb-2">CAMBIO DE MONEDA</label>' +
-              '<div class="flex items-center gap-2">' +
-                '<span class="text-white font-bold">1 USD =</span>' +
-                '<input id="st_exchange" type="number" value="' + (storeData.exchangeRate || 300) + '" class="admin-input flex-1">' +
-                '<span class="text-white font-bold">CUP</span>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="bg-[#111] rounded-lg p-4 border border-gray-800 space-y-3">' +
-            '<h3 class="font-display text-sm text-yolk">MENSAJERÍA</h3>' +
-            '<div id="shippingZonesList" class="space-y-2 max-h-40 overflow-y-auto">' +
-              (zonesHtml || '<p class="text-xs text-gray-700 text-center">Sin municipios</p>') +
-            '</div>' +
-            '<div class="flex gap-2">' +
-              '<input id="sz_name" type="text" placeholder="Municipio" class="admin-input flex-1 text-sm py-2">' +
-              '<input id="sz_cost" type="number" placeholder="Costo CUP" class="admin-input w-28 text-sm py-2">' +
-            '</div>' +
-            '<button onclick="addShippingZone()" class="w-full py-2 rounded bg-gray-800 font-bold text-xs text-white">AÑADIR</button>' +
-          '</div>' +
-          '<button onclick="saveSettings()" class="w-full py-3 rounded-lg font-bold text-black bg-yolk mt-4">GUARDAR CONFIGURACIÓN</button>' +
-        '</div>';
-    }
-
-    async function addShippingZone() {
-      var name = document.getElementById('sz_name').value.trim();
-      var cost = Number(document.getElementById('sz_cost').value) || 0;
-      if (!name) return;
-      storeData.shippingZones.push({ name: name, cost: cost });
-      await supabaseClient.from('peaky_settings').update({ shippingZones: storeData.shippingZones }).eq('id', 1);
-      showToast('Municipio añadido', 'success');
-      await fetchStoreData();
-      renderSettings(document.getElementById('adminContent'));
-    }
-
-    async function removeShippingZone(i) {
-      storeData.shippingZones.splice(i, 1);
-      await supabaseClient.from('peaky_settings').update({ shippingZones: storeData.shippingZones }).eq('id', 1);
-      showToast('Eliminado', 'success');
-      await fetchStoreData();
-      renderSettings(document.getElementById('adminContent'));
-    }
-
-    async function saveSettings() {
-      storeData.whatsappNumber = document.getElementById('st_whatsapp').value.trim();
-      storeData.exchangeRate = Number(document.getElementById('st_exchange').value) || 300;
-      await supabaseClient.from('peaky_settings').update({
-        whatsappNumber: storeData.whatsappNumber,
-        exchangeRate: storeData.exchangeRate
-      }).eq('id', 1);
-      showToast('Configuración guardada', 'success');
-      await fetchStoreData();
-    }
-
-    // ==========================================
-    // INICIALIZACIÓN
-    // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
-      checkAuth();
-      fetchStoreData();
-      document.getElementById('loginBtn').addEventListener('click', handleLogin);
-      document.getElementById('adminLogout').addEventListener('click', handleLogout);
-      document.getElementById('sendWhatsapp').addEventListener('click', sendWhatsappOrder);
-      document.querySelectorAll('.modal-overlay').forEach(function(o) {
-        o.addEventListener('click', function(e) {
-          if (e.target === o) closeAllModals();
-        });
-      });
-      console.log("Peaky Pan — Aplicación cargada correctamente.");
-    });
-  </script>
-</body>
-  </html>
+      for (
