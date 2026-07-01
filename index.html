@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Peaky Pan — Mercado Minorista 24 Horas</title>
   
+  <!-- Protección contra copia -->
   <script>
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
@@ -117,9 +118,13 @@
   </nav>
 
   <script>
-    // Misma cuenta de Supabase, PERO apuntando a tablas independientes
-    const SUPABASE_URL = 'https://hqijdiyidouvofdjafhl.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_5F3Cpg8wwY8kiqqeSJdFIQ_HvKEx6X3';
+    // ==========================================
+    // NUEVAS CLAVES DE SUPABASE INDEPENDIENTE
+    // ==========================================
+    const SUPABASE_URL = 'https://qtbhkurhxgdfxlnzswbw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_8Ra6i_2TbLeevenI00jdHg_k0K1Ilj6';
+    // ==========================================
+
     let supabaseClient;
     try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.error(e); }
 
@@ -130,13 +135,10 @@
     async function fetchStoreData() {
       if (!supabaseClient) return;
       try {
-        // TABLAS PROPIAS: peaky_settings, peaky_sections, peaky_products
         const { data: settings } = await supabaseClient.from('peaky_settings').select('*').eq('id', 1).single();
         if (settings) { storeData = { ...storeData, ...settings }; storeData.shippingZones = settings.shippingZones ? (typeof settings.shippingZones === 'string' ? JSON.parse(settings.shippingZones) : settings.shippingZones) : []; }
-        
         const { data: secs } = await supabaseClient.from('peaky_sections').select('*').order('id', { ascending: true });
         const { data: prods } = await supabaseClient.from('peaky_products').select('*');
-        
         storeData.sections = [];
         if (secs) { secs.forEach(s => { s.products = prods ? prods.filter(p => p.section_id === s.id) : []; storeData.sections.push(s); }); }
       } catch(e) { console.error("Fetch error:", e); }
@@ -147,7 +149,6 @@
     async function uploadImage(file) {
       if(!file || !supabaseClient) return null;
       const fileExt = file.name.split('.').pop(); const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`; const filePath = `productos/${fileName}`;
-      // BUCKET PROPIO: peaky_imagenes
       const { error } = await supabaseClient.storage.from('peaky_imagenes').upload(filePath, file, { cacheControl: '3600', upsert: false });
       if (error) { showToast('Error subiendo imagen'); return null; }
       const { data: publicUrlData } = supabaseClient.storage.from('peaky_imagenes').getPublicUrl(filePath);
@@ -284,4 +285,4 @@
     });
   </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </html>
+</html>
