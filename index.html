@@ -44,6 +44,30 @@
     .product-card:active { transform: scale(0.97); border-color: var(--accent); }
     .featured-card { min-width: 280px; height: 350px; position: relative; border-radius: 16px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 25px rgba(255, 215, 0, 0.15); }
     
+    /* Banner superior: imagen completa, ancho total, sin distorsionar */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+    .hero-banner img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to top, #0a0a0a 0%, transparent 100%);
+      pointer-events: none;
+    }
+    
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid #333; z-index: 900; padding-bottom: env(safe-area-inset-bottom); display: flex; }
     .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #888; padding: 12px 0; background: none; border: none; cursor: pointer; flex: 1; transition: color 0.2s; }
     .bottom-nav button.active { color: var(--accent); }
@@ -81,9 +105,9 @@
     </div>
   </div>
 
-  <!-- HEADER SOLO CON EL LOGO -->
-  <header class="relative bg-dark flex items-center justify-center py-12 border-b border-gray-900">
-    <img src="https://z-cdn-media.chatglm.cn/files/cb94e205-d80b-40e7-aee3-0c11c36b1088.jpg?auth_key=1882920579-cea43ed8f2c94175a9e28a4ebfadb6b8-0-afd040625afdde1a6e1e7d5b747df707" alt="Peaky Pan Logo" class="h-48 object-contain drop-shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+  <!-- BANNER SUPERIOR — Imagen completa ancho total sin distorsionar -->
+  <header class="hero-banner">
+    <img src="https://raw.githubusercontent.com/MJB1207/Peaky-Pan-24hrs/deba51546334778a48fb439a5d5ad227f662931c/1782923872639.png" alt="Peaky Pan — Mercado Minorista 24 Horas">
   </header>
 
   <!-- DESTACADOS (Billar + Ofertas) -->
@@ -118,7 +142,6 @@
         <div><label class="block text-xs text-gray-500 mb-1">Hora</label>
           <select id="billarTime" class="admin-input">
             <option value="">Selecciona hora</option>
-            <!-- Se llena con JS -->
           </select>
         </div>
         <button onclick="sendBillarBooking()" class="w-full py-3 rounded-lg font-bold text-black text-base bg-yolk active:scale-95 transition flex items-center justify-center gap-2 mt-2"><i class="fab fa-whatsapp text-xl"></i> RESERVAR POR WHATSAPP</button>
@@ -137,7 +160,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- BARRA INFERIOR (Sin Admin) -->
+  <!-- BARRA INFERIOR -->
   <nav class="bottom-nav">
     <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="active"><i class="fas fa-home text-xl"></i><span>Inicio</span></button>
     <button onclick="toggleSidebar()" id="navMenu"><i class="fas fa-bars text-xl"></i><span>Menú</span></button>
@@ -219,7 +242,6 @@
 
     function getUSD(priceCUP) { return Number(priceCUP) / (Number(storeData.exchangeRate) || 300); }
     
-    // CUP PRIMERO, USD SEGUNDO
     function formatPrice(priceCUP) { 
       return `<span class="text-white font-bold">${Math.round(Number(priceCUP)).toLocaleString()} CUP</span> <span class="text-xs text-yolk font-normal">($${getUSD(priceCUP).toFixed(2)} USD)</span>`; 
     }
@@ -254,13 +276,11 @@
       }
     }
 
-    // --- DESTACADOS: BILLAR FIJO + OFERTAS DINÁMICAS ---
     function renderFeatured() {
       const grid = document.getElementById('featuredScroll');
       const rate = Number(storeData.exchangeRate) || 300;
       document.getElementById('billarUsd').innerText = `($${(600/rate).toFixed(2)} USD)`;
       
-      // 1. Card de Billar (Siempre primero)
       let html = `
         <div class="featured-card snap-start relative bg-dark-card flex-shrink-0">
           <img src="https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover opacity-70">
@@ -273,7 +293,6 @@
           </div>
         </div>`;
 
-      // 2. Ofertas dinámicas (is_featured = true)
       const featured = storeData.sections.flatMap(s => s.products).filter(p => p.is_featured);
       featured.forEach(p => {
         html += `<div class="featured-card snap-start relative bg-dark-card flex-shrink-0">
@@ -293,7 +312,6 @@
       grid.innerHTML = html || '<p class="text-gray-500 p-4">Aún no hay ofertas destacadas.</p>';
     }
 
-    // --- BILLAR MODAL LOGIC ---
     function openBillarModal() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('billarDate').setAttribute('min', today);
@@ -611,4 +629,4 @@
     });
   </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </html>
+      </html>
